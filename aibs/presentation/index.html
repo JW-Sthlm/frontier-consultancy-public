@@ -1,0 +1,2939 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="foundry">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIBS · Frontier Consultancy · Structured (experimental)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- ── AIBS deck v0 ──
+     CSS chrome adapted from CAIP deck v0 (sibling track).
+     AIBS-specific overrides appended at end of <style> block.
+     Editable. Owners (Giel, Marvin) can rebrand at any time.
+-->
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── FOUNDRY THEME, dark canvas + aurora ── */
+:root{
+ --bg:#07080a;
+ --bg-card:rgba(255,255,255,.025);
+ --bg-elevated:rgba(255,255,255,.04);
+ --bg-code:rgba(255,255,255,.05);
+ --bg-white:rgba(255,255,255,.025);
+ --bg-alt:rgba(255,255,255,.025);
+
+ --fg:#f0f1f3;
+ --fg-secondary:#c8cad0;
+ --fg-muted:#8a8d96;
+ --fg-weak:#5b5e67;
+
+ --border:rgba(255,255,255,.08);
+ --border-light:rgba(255,255,255,.06);
+
+ /* Aurora endpoints */
+ --aurora-cyan:#00d4ff;
+ --aurora-purple:#7c3aed;
+ --aurora-pink:#ec4899;
+ --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+
+ /* Accents, kept as variables for legacy class names */
+ --teal:#00d4ff;
+ --teal-hover:#3ce0ff;
+ --teal-active:#00b3d9;
+ --teal-bg:rgba(0,212,255,.08);
+ --teal-bg-strong:rgba(0,212,255,.14);
+
+ --coral:#ec4899;
+ --coral-soft:rgba(236,72,153,.12);
+
+ --burgundy:#ec4899;
+ --burgundy-soft:rgba(236,72,153,.1);
+
+ --green:#34d399;
+ --blue:#60a5fa;
+ --purple:#a78bfa;
+ --red:#ef4444;
+ --red-soft:rgba(239,68,68,.14);
+ --red-glow:rgba(239,68,68,.4);
+
+ --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+ --shadow-md:0 4px 12px rgba(0,0,0,.4);
+ --shadow-lg:0 12px 32px rgba(0,0,0,.5);
+ --shadow-xl:0 24px 60px rgba(0,0,0,.6);
+
+ --radius-sm:6px;
+ --radius-md:10px;
+ --radius-lg:16px;
+ --radius-pill:100em;
+
+ --font-display:'Inter',-apple-system,system-ui,sans-serif;
+ --font-body:'Inter',-apple-system,system-ui,sans-serif;
+ --font-mono:'JetBrains Mono','SF Mono',ui-monospace,monospace;
+
+ --ease-out:cubic-bezier(.16,1,.3,1);
+ --ease-in-out:cubic-bezier(.4,0,.2,1);
+}
+
+html{scroll-behavior:smooth}
+body{
+ background:var(--bg);color:var(--fg);
+ font-family:var(--font-body);font-size:16px;
+ line-height:1.6;overflow-x:hidden;
+ -webkit-font-smoothing:antialiased;
+ position:relative;
+}
+/* Ambient aurora background blobs */
+body::before,body::after{
+ content:'';position:fixed;width:60vw;height:60vw;border-radius:50%;
+ filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+}
+body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+
+/* ── Progress bar (aurora) ── */
+#progress{
+ position:fixed;top:0;left:0;height:2px;
+ background:var(--aurora);width:0;z-index:100;
+ transition:width.5s var(--ease-out);
+}
+
+/* ── Chapter bar (top, horizontal) ── */
+#chapters{
+ position:fixed;top:14px;left:50%;transform:translateX(-50%);
+ display:flex;gap:2px;z-index:100;
+ background:rgba(15,16,20,.7);
+ border:1px solid var(--border);border-radius:var(--radius-pill);
+ padding:5px 6px;backdrop-filter:blur(20px) saturate(140%);
+ -webkit-backdrop-filter:blur(20px) saturate(140%);
+ box-shadow:var(--shadow-md);
+ font-family:var(--font-body);
+}
+.chapter-pill{
+ font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+ font-weight:600;color:var(--fg-muted);
+ padding:7px 13px;border-radius:var(--radius-pill);
+ cursor:pointer;background:transparent;border:none;
+ transition:all.25s var(--ease-out);
+ white-space:nowrap;font-family:inherit;
+}
+.chapter-pill:hover{color:var(--fg);background:rgba(255,255,255,.06)}
+.chapter-pill.active{
+ background:var(--aurora);color:#fff;
+ box-shadow:0 4px 16px rgba(124,58,237,.3);
+}
+.chapter-pill.active:hover{filter:brightness(1.08)}
+
+/* ── Nav dots ── */
+#nav{
+ position:fixed;right:24px;top:50%;transform:translateY(-50%);
+ display:flex;flex-direction:column;gap:12px;z-index:100;
+}
+.nav-dot{
+ width:8px;height:8px;border-radius:50%;
+ border:1.5px solid var(--fg-weak);background:transparent;
+ cursor:pointer;transition:all.3s var(--ease-out);
+ position:relative;
+}
+.nav-dot::after{
+ content:attr(data-label);
+ position:absolute;right:18px;top:50%;transform:translateY(-50%);
+ font-size:11px;letter-spacing:.02em;color:var(--fg-muted);
+ white-space:nowrap;opacity:0;pointer-events:none;
+ transition:opacity.2s;font-family:var(--font-body);font-weight:500;
+}
+.nav-dot:hover::after{opacity:1}
+.nav-dot.active{
+ background:var(--aurora);border-color:transparent;
+ transform:scale(1.5);
+ box-shadow:0 0 14px rgba(0,212,255,.5);
+}
+.nav-dot.chapter-start{margin-top:10px}
+
+/* ── Counter ── */
+#counter{
+ position:fixed;bottom:28px;left:36px;z-index:100;
+ font-family:var(--font-mono);font-size:11px;
+ letter-spacing:.04em;color:var(--fg-weak);font-weight:500;
+}
+#counter span{color:var(--aurora-cyan);font-weight:600}
+
+/* ── Keyboard hint ── */
+#keys{
+ position:fixed;bottom:28px;right:36px;z-index:100;
+ font-size:11px;color:var(--fg-weak);display:flex;gap:5px;align-items:center;
+ font-family:var(--font-body);
+}
+.key{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:22px;height:22px;border:1px solid var(--border);
+ border-radius:var(--radius-sm);font-size:9px;
+ background:rgba(255,255,255,.04);
+ font-family:var(--font-mono);color:var(--fg-secondary);
+}
+
+/* ── Header link ── */
+#header-link{position:fixed;top:14px;left:24px;z-index:101}
+#header-link a{color:var(--fg-muted)!important}
+
+/* ── Deck ── */
+#deck{
+ scroll-snap-type:y mandatory;overflow-y:scroll;height:100vh;
+ scroll-behavior:smooth;position:relative;z-index:1;
+ background-image:radial-gradient(circle,rgba(255,255,255,.035) 1px,transparent 1px);
+ background-size:32px 32px;
+}
+#deck::-webkit-scrollbar{display:none}
+.slide{
+ min-height:100vh;scroll-snap-align:start;
+ display:flex;align-items:center;justify-content:center;
+ padding:60px 80px;position:relative;overflow:hidden;
+}
+
+.slide-inner{max-width:1100px;width:100%;position:relative;z-index:1}
+
+/* ── Typography ── */
+.part-label{
+ font-family:var(--font-mono);font-size:11.5px;
+ letter-spacing:.16em;text-transform:uppercase;
+ font-weight:500;
+ margin-bottom:14px;display:inline-block;
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+}
+h1{
+ font-family:var(--font-display);
+ font-size:clamp(44px,5.4vw,72px);
+ line-height:1.05;font-weight:600;margin-bottom:24px;
+ letter-spacing:-.025em;color:var(--fg);
+ text-wrap:balance;
+}
+h1.accent,h1.coral{
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+ font-weight:700;
+}
+h2{
+ font-family:var(--font-display);
+ font-size:clamp(34px,3.6vw,52px);
+ line-height:1.1;font-weight:600;margin-bottom:22px;
+ letter-spacing:-.02em;color:var(--fg);
+ text-wrap:balance;
+}
+h2.accent,h2.coral{
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+ font-weight:700;
+}
+.lead{
+ font-size:23px;line-height:1.55;color:var(--fg-secondary);
+ max-width:60ch;margin-bottom:36px;font-weight:300;
+ text-wrap:pretty;
+}
+.lead strong{color:var(--fg);font-weight:500}
+.quote{
+ border-left:2px solid transparent;
+ border-image:var(--aurora) 1;
+ padding:12px 0 12px 22px;
+ color:var(--fg-secondary);font-size:18px;line-height:1.65;
+ margin-top:32px;max-width:60ch;font-weight:300;
+ text-wrap:pretty;
+}
+.quote strong{color:var(--fg);font-weight:500}
+
+/* ── Bullet list ── */
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.feature-list li{color:var(--fg-secondary);font-size:16px;display:flex;align-items:baseline;gap:10px;font-weight:300}
+.feature-list.dot{
+ width:6px;height:6px;border-radius:50%;background:var(--aurora);
+ flex-shrink:0;position:relative;top:2px;
+}
+.feature-list strong{color:var(--fg);font-weight:500}
+
+/* ── Slide backgrounds ── */
+.slide-hero{position:relative}
+.slide-alt{}
+
+/* ── Glass card base mixin (applied to.info-card,.block-card,.stat-card,.ladder-item,.process-step) ── */
+.info-card,.block-card,.stat-card,.ladder-item,.process-step{
+ background:var(--bg-card);
+ border:1px solid var(--border);
+ backdrop-filter:blur(20px) saturate(140%);
+ -webkit-backdrop-filter:blur(20px) saturate(140%);
+ transition:all.3s var(--ease-out);
+}
+
+/* ── Stat grid ── */
+.stat-grid{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:32px 0;
+}
+.stat-card{
+ border-radius:var(--radius-lg);padding:28px 22px;text-align:center;
+ position:relative;
+}
+.stat-card:hover{
+ background:var(--bg-elevated);
+ border-color:rgba(0,212,255,.3);
+ transform:translateY(-2px);
+ box-shadow:var(--shadow-md);
+}
+.stat-number{
+ font-family:var(--font-display);
+ font-size:clamp(40px,4.5vw,60px);
+ font-weight:700;line-height:1;margin-bottom:10px;
+ letter-spacing:-.025em;
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+}
+.stat-label{font-size:15.5px;color:var(--fg-secondary);font-weight:400;line-height:1.45}
+
+/* ── Card grid ── */
+.card-grid{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:24px 0;
+}
+.info-card{
+ border-radius:var(--radius-md);padding:20px 22px;
+}
+.info-card:hover{
+ background:var(--bg-elevated);
+ border-color:rgba(0,212,255,.3);
+ transform:translateY(-2px);
+ box-shadow:var(--shadow-md);
+}
+.info-card.icon{font-size:22px;margin-bottom:8px;display:inline-block}
+.info-card.card-title{font-family:var(--font-display);font-weight:600;font-size:17px;margin-bottom:6px;color:var(--fg)}
+.info-card.card-text{font-size:14.5px;color:var(--fg-secondary);line-height:1.55;font-weight:300}
+.info-card.card-text strong{color:var(--fg);font-weight:500}
+
+/* ── Block grid ── */
+.block-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:28px 0}
+.block-card{
+ border-radius:var(--radius-md);padding:26px 22px;
+}
+.block-card:hover{
+ background:var(--bg-elevated);
+ border-color:rgba(124,58,237,.3);
+ transform:translateY(-2px);
+ box-shadow:var(--shadow-lg);
+}
+.block-icon{font-size:28px;margin-bottom:12px;display:inline-block}
+.block-title{font-family:var(--font-display);font-weight:600;font-size:17px;margin-bottom:8px;color:var(--fg)}
+.block-desc{font-size:14.5px;color:var(--fg-secondary);line-height:1.55;margin-bottom:10px;font-weight:300}
+.block-desc strong{color:var(--fg);font-weight:500}
+
+/* ── Process flow ── */
+.process-flow{
+ display:flex;align-items:center;gap:0;margin:28px 0;flex-wrap:wrap;
+ justify-content:center;
+}
+.process-step{
+ border-radius:var(--radius-pill);padding:10px 18px;
+ font-size:14px;font-weight:500;font-family:var(--font-mono);
+ color:var(--fg-secondary);letter-spacing:.01em;
+}
+.process-arrow{
+ color:transparent;font-size:18px;padding:0 8px;font-weight:700;
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;
+}
+
+/* ── Demo trail (numbered horizontal stepper) ── */
+.demo-trail{position:relative;}
+.demo-trail-line{
+ position:absolute;left:32px;right:32px;top:24px;height:2px;
+ background:linear-gradient(90deg,
+ rgba(0,212,255,.35) 0%,
+ rgba(0,212,255,.45) 55%,
+ var(--red) 60%,var(--red) 72%,
+ rgba(0,212,255,.45) 78%,
+ rgba(0,212,255,.35) 100%);
+ z-index:0;
+}
+.demo-trail-stations{
+ display:flex;justify-content:space-between;align-items:flex-start;
+ position:relative;z-index:1;gap:8px;
+}
+.demo-station{flex:1 1 0;text-align:center;min-width:0;}
+.demo-dot{
+ width:48px;height:48px;border-radius:50%;
+ background:var(--bg);border:2px solid rgba(0,212,255,.55);
+ color:var(--teal);font-weight:800;font-size:17px;
+ font-family:var(--font-mono);
+ display:flex;align-items:center;justify-content:center;
+ margin:0 auto 14px;
+ transition:transform.3s ease;
+ box-shadow:0 0 0 4px var(--bg);
+}
+.demo-label{
+ font-size:14px;font-weight:600;color:var(--fg-secondary);
+ letter-spacing:.01em;line-height:1.3;
+}
+.demo-station-key.demo-dot{
+ background:var(--red);border-color:var(--red);color:#fff;
+ box-shadow:0 0 0 4px var(--bg),0 0 24px var(--red-glow);
+ transform:scale(1.15);
+}
+.demo-station-key.demo-label{color:var(--red);font-weight:700;}
+
+@keyframes livePulse{
+ 0%{box-shadow:0 0 0 0 var(--red-glow);}
+ 70%{box-shadow:0 0 0 14px rgba(239,68,68,0);}
+ 100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}
+}
+
+/* ── Lifecycle matrix ── */
+.lifecycle-matrix{
+ display:grid;
+ grid-template-columns:90px 1fr 1.6fr 1.4fr 1fr;
+ gap:1px;background:var(--border);
+ border:1px solid var(--border);border-radius:var(--radius-md);
+ overflow:hidden;margin:24px 0;font-size:13.5px;
+ background-color:rgba(255,255,255,.02);
+ backdrop-filter:blur(20px) saturate(140%);
+ -webkit-backdrop-filter:blur(20px) saturate(140%);
+}
+.lm-header{
+ background:rgba(255,255,255,.04);
+ font-family:var(--font-mono);font-size:10.5px;font-weight:500;
+ letter-spacing:.12em;text-transform:uppercase;color:var(--fg-muted);
+ padding:12px 14px;
+}
+.lm-cell{
+ background:rgba(8,9,11,.6);
+ padding:12px 14px;display:flex;flex-direction:column;justify-content:center;
+}
+.lm-phase{
+ background:rgba(0,212,255,.08);
+ font-family:var(--font-mono);font-weight:500;
+ font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+ color:transparent;
+ background-image:var(--aurora);background-clip:text;-webkit-background-clip:text;
+}
+.lm-lead{font-size:14.5px;color:var(--fg);font-weight:500;line-height:1.5}
+.lm-assets,.lm-handoff,.lm-gate{font-size:14px;line-height:1.6;color:var(--fg-secondary);font-weight:300}
+.lm-assets strong,.lm-handoff strong,.lm-gate strong{color:var(--fg);font-weight:500}
+.lm-assets.pill{
+ display:inline-block;background:rgba(255,255,255,.05);
+ padding:2px 10px;border-radius:var(--radius-pill);
+ font-size:12.5px;color:var(--fg-secondary);margin:2px 2px 2px 0;
+ border:1px solid var(--border);white-space:nowrap;
+ font-family:var(--font-mono);font-weight:400;letter-spacing:.02em;
+}
+.lm-gate{color:var(--aurora-pink);font-weight:400}
+@media(max-width:900px){
+.lifecycle-matrix{grid-template-columns:1fr;font-size:12px}
+.lm-header{display:none}
+}
+
+/* ── Ladder ── */
+.ladder{display:flex;flex-direction:column;gap:14px;margin:30px 0;max-width:720px}
+.ladder-item{
+ border-radius:var(--radius-md);padding:20px 26px;
+ border-left:3px solid var(--border);
+}
+.ladder-item:hover{background:var(--bg-elevated);transform:translateY(-1px)}
+.ladder-item.active{
+ border-left:3px solid transparent;
+ border-image:var(--aurora) 1;
+ background:rgba(0,212,255,.06);
+}
+.ladder-item.ladder-name{font-family:var(--font-display);font-weight:600;font-size:16px;margin-bottom:4px;color:var(--fg)}
+.ladder-item.ladder-desc{font-size:15px;color:var(--fg-secondary);line-height:1.55;font-weight:300}
+.ladder-item.active.ladder-name{
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+}
+
+/* ── Two cols ── */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+
+/* ── Resource list ── */
+.resource-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.resource-list li{
+ font-size:15px;color:var(--fg-secondary);
+ display:flex;align-items:center;gap:10px;font-weight:300;
+}
+.resource-list li strong{color:var(--fg);font-weight:500}
+.resource-list a{
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+ text-decoration:none;font-weight:500;
+ border-bottom:1px solid rgba(124,58,237,.3);
+}
+.resource-list a:hover{border-bottom-color:rgba(124,58,237,.6)}
+
+/* ── Reveal animations ── */
+.reveal{
+ opacity:0;transform:translateY(20px);
+ transition:opacity.7s var(--ease-out),transform.7s var(--ease-out);
+}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal.d1{transition-delay:.08s}
+.reveal.d2{transition-delay:.16s}
+.reveal.d3{transition-delay:.24s}
+.reveal.d4{transition-delay:.32s}
+.reveal.d5{transition-delay:.4s}
+
+/* ── Title slide ── */
+.slide-title{text-align:center}
+.slide-title.slide-inner{display:flex;flex-direction:column;align-items:center}
+.slide-title h1{margin-bottom:18px}
+.slide-title.lead{text-align:center;max-width:62ch}
+.slide-hero h1{
+ font-size:clamp(56px,7.5vw,108px);
+ font-weight:300;letter-spacing:-.04em;line-height:.98;
+ max-width:14ch;text-wrap:balance;text-align:center;
+}
+.slide-hero .lead{text-align:center;text-wrap:balance}
+.start-hint{
+ margin-top:48px;display:inline-flex;align-self:center;align-items:center;gap:8px;
+ font-size:12px;color:var(--fg-weak);font-family:var(--font-mono);
+ letter-spacing:.06em;text-transform:uppercase;
+ animation:pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* Section dividers (slide-alt slide-title), large centered heading + aurora line */
+.slide-alt.slide-title h2{
+ font-size:clamp(48px,6vw,84px);
+ font-weight:400;letter-spacing:-.035em;line-height:1;
+ max-width:18ch;margin:0 auto 28px;
+}
+.slide-alt.slide-title.slide-inner::after{
+ content:'';display:block;width:120px;height:2px;
+ background:var(--aurora);margin:0 auto;border-radius:2px;
+ opacity:.7;
+}
+
+/* ── Callout ── */
+.callout{
+ background:rgba(0,212,255,.06);
+ border:1px solid rgba(0,212,255,.18);
+ border-radius:var(--radius-md);
+ padding:22px 26px;margin:24px 0;
+ backdrop-filter:blur(20px);
+ -webkit-backdrop-filter:blur(20px);
+}
+.callout strong{
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+ font-weight:600;
+}
+
+/* ── Block-grid hero variant ── */
+.block-grid-hero{gap:22px;margin:28px 0}
+.block-grid-hero.block-card{
+ padding:30px 26px;border-left-width:3px;border-left-style:solid;
+}
+.block-grid-hero.block-card:hover{
+ box-shadow:var(--shadow-lg);transform:translateY(-3px);
+}
+
+/* ── Generic card (partner-voice) ── */
+.card{
+ background:var(--bg-card);
+ border:1px solid var(--border);
+ border-radius:var(--radius-md);padding:24px 26px;
+ backdrop-filter:blur(20px) saturate(140%);
+ -webkit-backdrop-filter:blur(20px) saturate(140%);
+ transition:all.3s var(--ease-out);
+}
+.card:hover{
+ background:var(--bg-elevated);
+ border-color:rgba(0,212,255,.3);
+ transform:translateY(-2px);
+ box-shadow:var(--shadow-md);
+}
+.card.card-icon{font-size:28px;margin-bottom:14px;display:inline-block}
+.card.card-title{font-family:var(--font-display);font-weight:600;font-size:18px;margin-bottom:8px;color:var(--fg)}
+.card.card-text{font-size:15px;color:var(--fg-secondary);line-height:1.6;font-weight:300}
+
+/* ── Squad appendix specifics, fix video-frame overflow ── */
+#squad-appendix.video-frame{
+ width:100%;height:100%;
+ background:#000;border:1px solid var(--border);
+ border-radius:var(--radius-md);
+ display:flex;align-items:center;justify-content:center;
+ position:relative;overflow:hidden;
+}
+#squad-appendix.video-placeholder{text-align:center;padding:40px;color:var(--fg-secondary)}
+
+/* ── Code inline ── */
+code{
+ font-family:var(--font-mono);font-size:.92em;
+ background:rgba(255,255,255,.06);padding:2px 7px;
+ border-radius:5px;border:1px solid var(--border);
+ color:var(--fg);
+}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+.slide{padding:40px 28px}
+.cols{grid-template-columns:1fr;gap:24px}
+.stat-grid{grid-template-columns:repeat(2,1fr)}
+.card-grid{grid-template-columns:1fr}
+.block-grid{grid-template-columns:1fr}
+.ladder{max-width:100%}
+ #nav{display:none}
+ #chapters{display:none}
+}
+
+/* ── Presenter mode (inline) ── */
+#presenter-view{display:none}
+body.mode-presenter{background:#0a0b0e;color:#e8e8e8;overflow:hidden}
+body.mode-presenter::before,body.mode-presenter::after{display:none}
+body.mode-presenter #deck,body.mode-presenter #nav,body.mode-presenter #counter,body.mode-presenter #keys,body.mode-presenter #progress,body.mode-presenter #header-link,body.mode-presenter #chapters{display:none}
+body.mode-presenter #presenter-view{
+ display:grid;grid-template-rows:auto 1fr auto;
+ height:100vh;font-family:var(--font-body);
+}
+.pv-header{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.08);
+ background:rgba(15,16,20,.7);backdrop-filter:blur(20px);
+}
+.pv-label{
+ font-family:var(--font-mono);font-size:11.5px;
+ font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+}
+.pv-counter{font-family:var(--font-mono);font-size:12px;color:var(--fg-muted);font-weight:500}
+.pv-counter span{color:var(--aurora-cyan);font-weight:600}
+.pv-main{display:grid;grid-template-columns:420px 1fr;gap:0;overflow:hidden}
+.pv-thumb-panel{
+ background:#06070a;border-right:1px solid rgba(255,255,255,.08);
+ display:flex;align-items:center;justify-content:center;
+ padding:16px;overflow:hidden;
+}
+.pv-thumb-frame{
+ width:390px;height:220px;border-radius:8px;
+ border:1px solid rgba(255,255,255,.1);overflow:hidden;
+ background:var(--bg);position:relative;
+}
+.pv-thumb-frame iframe{
+ width:1280px;height:720px;
+ transform:scale(0.305);transform-origin:0 0;
+ border:none;pointer-events:none;
+}
+.pv-notes-panel{
+ padding:36px 44px;overflow-y:auto;
+ display:flex;flex-direction:column;justify-content:center;
+}
+.pv-notes-do{
+ font-size:14px;font-weight:500;
+ margin-bottom:18px;line-height:1.55;
+ font-family:var(--font-mono);letter-spacing:.02em;
+ background:var(--aurora);-webkit-background-clip:text;
+ background-clip:text;color:transparent;
+}
+.pv-notes-say{font-size:26px;line-height:1.65;font-weight:300;color:var(--fg-secondary)}
+.pv-waiting{color:var(--fg-weak);font-style:italic;font-size:18px;line-height:1.6}
+.pv-footer{
+ padding:8px 24px;border-top:1px solid rgba(255,255,255,.08);
+ font-size:11px;color:var(--fg-weak);background:rgba(15,16,20,.7);
+ display:flex;justify-content:space-between;
+ font-family:var(--font-mono);
+}
+.pv-footer kbd{
+ background:rgba(255,255,255,.06);border:1px solid var(--border);
+ border-radius:4px;padding:1px 6px;font-size:10px;
+ color:var(--fg-secondary);font-family:var(--font-mono);
+}
+body.mode-thumb #nav,body.mode-thumb #counter,body.mode-thumb #keys,body.mode-thumb #progress,body.mode-thumb #header-link,body.mode-thumb #chapters{display:none}
+body.mode-thumb::before,body.mode-thumb::after{display:none}
+
+
+/* ── AIBS theme overrides ───────────────────────────────────────────────────
+   Retint CAIP's Foundry palette to a Dynamics 365 / AIBS palette.
+   Indigo → magenta → pink, distinct from CAIP's cyan/purple aurora.
+   Keeps the dark base and chrome; only the accent system shifts.
+*/
+
+/* Right-side dot rail is too dense at 37 slides. Hide it. Use chapter pills + arrows instead. */
+#nav{display:none !important;}
+
+:root{
+  --aurora-cyan:#5B5FC7;          /* indigo (was cyan) */
+  --aurora-purple:#B146C2;        /* magenta (was purple) */
+  --aurora-pink:#E3008C;          /* Dynamics pink (kept hot) */
+  --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+  --teal:#B146C2;
+  --teal-hover:#C46BD0;
+  --teal-active:#9A2EAB;
+  --teal-bg:rgba(177,70,194,.10);
+  --teal-bg-strong:rgba(177,70,194,.18);
+  --coral:#E3008C;
+  --coral-soft:rgba(227,0,140,.12);
+  --burgundy:#B146C2;
+  --burgundy-soft:rgba(177,70,194,.10);
+  --accent:#E3008C;
+  --link:#C46BD0;
+}
+
+/* Header chrome accent. Make the Dynamics palette visible on every slide. */
+#header-link{
+  text-transform:none;
+  font-family:var(--font-body);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.02em;
+  background:var(--aurora);
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+}
+#header-link span{padding:0 !important;font-size:inherit;color:inherit;}
+.progress-bar,#progress-bar{background:var(--aurora) !important;}
+
+/* Part-label / eyebrow uses the magenta accent on structured slides. */
+.slide-aibs .part-label{color:var(--coral);font-weight:700;}
+.slide-aibs .slide-h2{color:var(--fg);}
+.slide-aibs .slide-h2::after{
+  content:"";display:block;width:64px;height:3px;margin-top:14px;
+  background:var(--aurora);border-radius:2px;
+}
+
+/* ── AIBS additions (snapshot + structured slide rendering) ────────────────── */
+.slide-aibs.slide-snapshot .slide-inner.snapshot-inner{
+  display:flex;flex-direction:column;gap:24px;
+  align-items:center;justify-content:center;
+  max-width:none;width:100%;padding:24px 32px;
+}
+.slide-aibs .snapshot-frame{
+  position:relative;width:min(95%,1600px);max-height:78vh;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.4);border-radius:12px;overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06);
+}
+.slide-aibs .snapshot-frame img{
+  width:100%;height:auto;display:block;max-height:78vh;object-fit:contain;
+}
+.slide-aibs .snapshot-meta{
+  display:flex;gap:12px;align-items:baseline;font-family:var(--font-body);
+  font-size:13px;color:var(--fg-muted);letter-spacing:.04em;text-transform:uppercase;
+}
+.slide-aibs .snapshot-num{
+  font-weight:700;
+  background:var(--aurora);
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+  letter-spacing:.08em;
+}
+.slide-aibs .snapshot-title{font-weight:500;color:var(--fg);}
+
+/* Video placeholder overlay. Loud and unmissable. There's no embedded video here. */
+.slide-aibs .video-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(7,8,10,.78);
+  backdrop-filter:blur(2px);
+}
+.slide-aibs .video-overlay-inner{
+  max-width:560px;text-align:center;padding:32px 28px;
+  background:rgba(7,8,10,.88);
+  border:1px solid rgba(227,0,140,.35);
+  border-radius:14px;
+  box-shadow:0 12px 48px rgba(0,0,0,.6),0 0 0 4px rgba(227,0,140,.06);
+}
+.slide-aibs .video-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:999px;
+  background:var(--aurora);color:#fff;
+  font-size:12px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:14px;
+  box-shadow:0 4px 16px rgba(227,0,140,.4);
+}
+.slide-aibs .video-icon{font-size:14px;line-height:1;}
+.slide-aibs .video-overlay p{
+  font-size:15px;line-height:1.55;color:var(--fg);
+  margin:0;
+}
+
+/* Structured variant */
+.slide-aibs.slide-structured .slide-inner.structured-inner{
+  max-width:1060px;padding:48px;
+}
+.slide-aibs .slide-h2{
+  font-size:clamp(30px,3.2vw,44px);line-height:1.15;
+  font-weight:700;letter-spacing:-0.015em;text-wrap:balance;
+  margin-bottom:24px;
+}
+.slide-aibs .structured-body{font-size:18px;line-height:1.6;color:var(--fg-muted);}
+.slide-aibs .structured-body ul{padding-left:1.5em;margin:8px 0;}
+.slide-aibs .structured-body li{margin:6px 0;}
+.slide-aibs .body-empty{font-style:italic;color:var(--fg-muted);opacity:.6;}
+.slide-aibs .complex-warning{
+  background:rgba(255,193,7,.1);border-left:3px solid #ffc107;
+  padding:12px 16px;border-radius:6px;margin-bottom:16px;
+  font-size:14px;color:var(--fg);
+}
+.slide-aibs .extracted-raw{margin-top:16px;}
+.slide-aibs .extracted-raw pre{
+  background:rgba(0,0,0,.4);padding:12px;border-radius:6px;
+  font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--fg-muted);
+  font-family:var(--font-mono,monospace);max-height:300px;overflow-y:auto;
+}
+
+/* Speaker notes are accessed via the presenter view. Press P to open. */
+.slide-aibs .part-label{
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:600;color:var(--coral);margin-bottom:12px;
+}
+
+/* ── Manual rebuilds ──
+   Hand-coded HTML lookalikes for slides where the structured extractor falls short.
+   Each rebuild is a self-contained component. Edit at will.
+*/
+
+/* Slide 07 – The Opportunity (TCO bar diagram) */
+.slide-aibs .opp-lead{
+  font-size:21px;line-height:1.55;color:var(--fg-muted);
+  max-width:54ch;text-wrap:pretty;margin:0 0 22px;
+}
+
+/* TCO container */
+.slide-aibs .tco{
+  display:flex;flex-direction:column;gap:14px;margin:0 0 26px;
+}
+
+/* Customer TCO axis with arrows */
+.slide-aibs .tco-axis{
+  display:flex;align-items:center;gap:18px;width:100%;
+}
+.slide-aibs .tco-axis-arrow{flex:1 1 0;display:flex;align-items:center;}
+.slide-aibs .tco-axis-arrow-l{color:#5B7BF5;}
+.slide-aibs .tco-axis-arrow-r{color:#E3008C;}
+.slide-aibs .tco-axis-line{width:100%;height:14px;display:block;}
+.slide-aibs .tco-axis-title{
+  font-family:var(--font-display,var(--font-body));
+  font-weight:800;font-size:24px;letter-spacing:-.005em;line-height:1;
+  background:linear-gradient(90deg,#5B7BF5 0%,#E3008C 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  white-space:nowrap;padding:0 4px;
+}
+
+/* Bars */
+.slide-aibs .tco-row{position:relative;display:flex;align-items:center;}
+.slide-aibs .tco-row-acc{align-items:flex-start;}
+.slide-aibs .tco-bar{
+  display:flex;align-items:center;gap:18px;
+  padding:14px 22px;min-height:78px;border-radius:10px;
+  background:linear-gradient(90deg,#3D5BF5 0%,#7B49C3 50%,#C940A8 100%);
+  color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.22);
+}
+.slide-aibs .tco-bar-trad{flex:1 1 100%;}
+.slide-aibs .tco-bar-acc{flex:0 0 70%;}
+.slide-aibs .tco-icons{display:flex;align-items:center;gap:8px;flex:0 0 auto;color:#fff;}
+.slide-aibs .tco-icons svg{display:block;}
+.slide-aibs .tco-plus{
+  font-family:var(--font-display,var(--font-body));
+  font-size:22px;font-weight:800;line-height:1;color:#fff;padding:0 4px;
+}
+.slide-aibs .tco-label{
+  flex:1 1 auto;font-size:15px;font-weight:500;line-height:1.3;color:#fff;
+  letter-spacing:.005em;
+}
+.slide-aibs .tco-badge{display:flex;align-items:center;gap:10px;flex:0 0 auto;color:#fff;}
+.slide-aibs .tco-badge-text{display:flex;flex-direction:column;line-height:1.15;}
+.slide-aibs .tco-badge-line{display:flex;align-items:baseline;gap:2px;}
+.slide-aibs .tco-badge-line strong{font-size:18px;font-weight:700;}
+.slide-aibs .tco-badge-line sup{font-size:10px;opacity:.85;}
+.slide-aibs .tco-badge-sub{font-size:11px;opacity:.85;letter-spacing:.02em;}
+
+/* Curved "shorter" indicator */
+.slide-aibs .tco-curve-wrap{
+  flex:1 1 auto;display:flex;align-items:flex-start;justify-content:flex-start;
+  padding-left:12px;color:rgba(255,255,255,.55);
+}
+.slide-aibs .tco-curve{width:96px;height:60px;display:block;transform:translateY(8px);}
+
+/* Stat callouts under TCO */
+.slide-aibs .opp-stat-list{
+  list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;
+}
+.slide-aibs .opp-stat-list-tco{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px 32px;margin:0 0 18px;
+}
+.slide-aibs .opp-stat-list li{
+  display:flex;align-items:baseline;gap:14px;font-size:14px;line-height:1.5;
+  color:var(--fg-muted);
+}
+.slide-aibs .opp-stat-list strong{
+  flex:0 0 auto;font-family:var(--font-display,var(--font-body));font-size:30px;
+  font-weight:800;letter-spacing:-.02em;line-height:1;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;
+  color:transparent;min-width:84px;
+}
+.slide-aibs .opp-sources{
+  list-style:decimal inside;padding:0;margin:0;
+  font-size:11px;line-height:1.5;color:var(--fg-muted);opacity:.75;
+}
+.slide-aibs .opp-sources li{margin:3px 0;}
+
+/* ── Section divider (title-only slides) ─────────────────────────────────── */
+.slide-aibs.slide-section-divider .slide-inner{
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:70vh;
+}
+.slide-aibs .section-divider-inner{
+  display:flex;flex-direction:column;gap:28px;
+}
+.slide-aibs .section-divider-rule{
+  width:72px;height:5px;border-radius:3px;background:var(--aurora);
+}
+.slide-aibs .section-divider-title{
+  font-family:var(--font-display,var(--font-body));
+  font-size:clamp(48px,6vw,84px);line-height:1.04;
+  font-weight:800;letter-spacing:-.025em;
+  text-wrap:balance;color:var(--fg);
+  margin:0;
+}
+
+/* ── Slide 06 – Today vs With AI+MCP (segmented bars) ───────────────────── */
+.slide-aibs .timebars{display:flex;flex-direction:column;gap:22px;margin:0 0 22px;}
+.slide-aibs .timebar-block{display:flex;flex-direction:column;gap:10px;}
+.slide-aibs .timebar-label{
+  font-size:14px;font-weight:600;color:var(--fg);letter-spacing:.005em;
+  display:flex;align-items:center;gap:8px;
+}
+.slide-aibs .timebar-icon{font-size:16px;}
+.slide-aibs .timebar-row{
+  display:flex;width:100%;height:64px;border-radius:10px;overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,.22);
+}
+.slide-aibs .timebar-seg{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:8px 16px;color:#fff;min-width:0;
+  border-right:1px solid rgba(255,255,255,.12);
+}
+.slide-aibs .timebar-seg:last-child{border-right:none;}
+.slide-aibs .timebar-seg-name{
+  font-size:13px;font-weight:600;letter-spacing:.005em;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.slide-aibs .timebar-seg-pct{
+  font-family:var(--font-display,var(--font-body));
+  font-size:18px;font-weight:800;letter-spacing:-.01em;line-height:1.1;
+  margin-top:2px;
+}
+.slide-aibs .timebar-delta{
+  font-size:11px;font-weight:600;letter-spacing:.01em;opacity:.85;
+  margin-left:4px;
+}
+.slide-aibs .timebar-seg-strategic{background:linear-gradient(135deg,#3D5BF5 0%,#5B5FC7 100%);}
+.slide-aibs .timebar-seg-delivery{background:linear-gradient(135deg,#7B49C3 0%,#B146C2 100%);}
+.slide-aibs .timebar-seg-boring{background:linear-gradient(135deg,#5C5F66 0%,#3A3D44 100%);color:rgba(255,255,255,.85);}
+.slide-aibs .timebar-seg-aimcp{
+  background:linear-gradient(135deg,#E3008C 0%,#C940A8 100%);
+  align-items:center;justify-content:center;text-align:center;padding:8px 6px;
+}
+.slide-aibs .timebar-seg-aimcp .timebar-seg-pct{font-size:16px;}
+.slide-aibs .timebar-aimcp-note{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-top:2px;font-size:13px;color:var(--fg-muted);
+}
+.slide-aibs .timebar-aimcp-tag{
+  display:inline-block;padding:3px 10px;border-radius:999px;
+  background:rgba(227,0,140,.15);border:1px solid rgba(227,0,140,.4);
+  color:var(--coral);font-weight:700;letter-spacing:.02em;
+}
+.slide-aibs .timebar-aimcp-tools{font-weight:500;color:var(--fg-muted);}
+
+.slide-aibs .timebar-callout{
+  display:flex;gap:24px;align-items:center;
+  padding:18px 22px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(91,95,199,.12) 0%,rgba(227,0,140,.10) 100%);
+  border:1px solid rgba(177,70,194,.25);
+}
+.slide-aibs .timebar-callout-body{
+  display:flex;align-items:flex-start;gap:14px;flex:1 1 auto;
+}
+.slide-aibs .timebar-callout-icon{font-size:24px;line-height:1.2;}
+.slide-aibs .timebar-callout p{
+  font-size:15px;line-height:1.5;color:var(--fg);margin:0;text-wrap:pretty;
+}
+.slide-aibs .timebar-callout strong{color:var(--coral);font-weight:700;}
+.slide-aibs .timebar-callout-stat{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding-left:20px;border-left:1px solid rgba(177,70,194,.3);min-width:140px;
+}
+.slide-aibs .timebar-callout-stat strong{
+  font-family:var(--font-display,var(--font-body));font-size:36px;font-weight:800;
+  letter-spacing:-.02em;line-height:1;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .timebar-callout-stat span{
+  font-size:11px;line-height:1.3;color:var(--fg-muted);margin-top:6px;max-width:14ch;
+}
+
+/* ── Slide 16 – Azure DevOps MCP (Q&A panels + tool cards) ──────────────── */
+.slide-aibs .qa-panel{
+  margin:0 0 20px;padding:22px 24px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+}
+.slide-aibs .qa-panel:last-child{margin-bottom:0;}
+.slide-aibs .qa-question{
+  font-size:18px;font-weight:700;color:var(--fg);line-height:1.35;
+  letter-spacing:-.005em;margin:0 0 14px;
+  padding-left:14px;border-left:3px solid var(--coral);
+}
+.slide-aibs .qa-answer-grid{display:flex;flex-direction:column;gap:8px;margin:0 0 14px;}
+.slide-aibs .qa-answer{
+  font-size:14px;line-height:1.55;color:var(--fg-muted);margin:0;text-wrap:pretty;
+}
+.slide-aibs .qa-answer-muted{font-size:13px;opacity:.85;}
+.slide-aibs .qa-answer code,
+.slide-aibs .qa-steps code{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:.92em;padding:1px 5px;border-radius:4px;
+  background:rgba(177,70,194,.14);color:#E3B8E8;
+}
+.slide-aibs .qa-steps{
+  list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;
+}
+.slide-aibs .qa-steps li{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:13px;line-height:1.5;color:var(--fg-muted);
+}
+.slide-aibs .qa-step-num{
+  flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--aurora);color:#fff;font-weight:800;font-size:11px;
+  letter-spacing:0;line-height:1;
+}
+.slide-aibs .qa-steps strong{color:var(--fg);font-weight:600;}
+
+.slide-aibs .tool-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+}
+.slide-aibs .tool-card{
+  padding:14px 16px;border-radius:10px;
+  background:rgba(0,0,0,.32);border:1px solid rgba(177,70,194,.22);
+  display:flex;flex-direction:column;gap:8px;
+}
+.slide-aibs .tool-card-name{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:12px;font-weight:600;color:var(--coral);
+  word-break:break-all;line-height:1.3;
+}
+.slide-aibs .tool-card-desc{
+  font-size:13px;line-height:1.55;color:var(--fg-muted);margin:0;
+}
+.slide-aibs .tool-card-desc code{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:.9em;padding:1px 4px;border-radius:3px;
+  background:rgba(177,70,194,.14);color:#E3B8E8;
+}
+
+/* ── Slide 17 – Empower DevOps (two-column) ─────────────────────────────── */
+.slide-aibs .twocol{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0 0 0;
+}
+.slide-aibs .twocol-pane{
+  padding:12px 14px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:8px;
+}
+.slide-aibs .twocol-head{display:flex;flex-direction:column;gap:4px;}
+.slide-aibs .twocol-eyebrow{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);
+  display:inline-block;width:fit-content;
+  padding:3px 9px;border-radius:999px;
+  background:rgba(227,0,140,.12);border:1px solid rgba(227,0,140,.3);
+}
+.slide-aibs .twocol-eyebrow-alt{
+  color:#7BC9FF;
+  background:rgba(91,95,199,.14);border-color:rgba(91,95,199,.4);
+}
+.slide-aibs .twocol-sub{
+  font-size:12px;line-height:1.5;color:var(--fg-muted);margin:0;text-wrap:pretty;
+}
+.slide-aibs .twocol-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;}
+.slide-aibs .twocol-list > li{
+  display:flex;flex-direction:column;gap:2px;
+  padding:5px 0;border-top:1px solid rgba(255,255,255,.06);
+}
+.slide-aibs .twocol-list > li:first-child{border-top:none;padding-top:0;}
+.slide-aibs .twocol-list-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.slide-aibs .twocol-list-name{
+  font-size:12px;font-weight:700;color:var(--fg);letter-spacing:-.005em;
+}
+.slide-aibs .twocol-list-desc{
+  font-size:12px;line-height:1.45;color:var(--fg-muted);text-wrap:pretty;
+}
+.slide-aibs .twocol-list-quote{
+  font-size:12px;line-height:1.4;color:#E3B8E8;font-style:italic;
+  padding:4px 8px;border-left:2px solid var(--coral);
+  background:rgba(227,0,140,.06);border-radius:4px;
+  margin:2px 0;
+}
+.slide-aibs .twocol-tags{display:inline-flex;gap:4px;flex-wrap:wrap;}
+.slide-aibs .twocol-tag{
+  font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 6px;border-radius:999px;line-height:1.4;
+}
+.slide-aibs .twocol-tag-ok{background:rgba(56,176,109,.18);color:#6BD49C;border:1px solid rgba(56,176,109,.4);}
+.slide-aibs .twocol-tag-warn{background:rgba(255,193,7,.15);color:#FFD56B;border:1px solid rgba(255,193,7,.4);}
+.slide-aibs .twocol-tag-block{background:rgba(227,0,140,.15);color:#FF6BC0;border:1px solid rgba(227,0,140,.4);}
+
+/* ── Slide 20 – CRM MCP Server Tools (6-card grid) ──────────────────────── */
+.slide-aibs .slide-mcp-cats{display:flex;flex-direction:column;gap:10px;}
+.slide-aibs .mcp-cats-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);margin:0;
+}
+.slide-aibs .mcp-cats-title{
+  margin:0;line-height:1.1;
+}
+.slide-aibs .mcp-cats-sub{
+  font-size:14px;line-height:1.55;color:var(--fg-muted);margin:0;
+  max-width:72ch;text-wrap:pretty;
+}
+.slide-aibs .mcp-cat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;
+}
+.slide-aibs .mcp-cat-card{
+  padding:13px 15px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(177,70,194,.28);
+  display:flex;flex-direction:column;gap:8px;
+}
+.slide-aibs .mcp-cat-header{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:11.5px;font-weight:700;color:var(--coral);
+  letter-spacing:.06em;text-transform:uppercase;
+  padding-bottom:6px;border-bottom:1px solid rgba(177,70,194,.22);
+}
+.slide-aibs .mcp-cat-bullets{
+  list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px;
+}
+.slide-aibs .mcp-cat-bullets > li{
+  font-size:13px;line-height:1.5;color:var(--fg-muted);
+  padding-left:13px;position:relative;text-wrap:pretty;
+}
+.slide-aibs .mcp-cat-bullets > li::before{
+  content:"";position:absolute;left:0;top:.55em;
+  width:4px;height:4px;border-radius:50%;background:var(--coral);
+}
+
+/* ── Slide 25 – '500,000+' ERP AI actions hero stat ─────────────────────── */
+.slide-aibs .slide-stat-hero{
+  display:flex;flex-direction:column;gap:20px;
+  justify-content:center;min-height:60vh;
+}
+.slide-aibs .stat-eyebrow{
+  font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--coral);margin:0;
+}
+.slide-aibs .stat-headline{
+  display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;margin:0;
+}
+.slide-aibs .stat-number{
+  font-family:var(--font-display,var(--font-body));
+  font-size:clamp(96px,14vw,200px);
+  font-weight:900;line-height:.95;letter-spacing:-.045em;
+  background:var(--aurora);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .stat-plus{font-weight:900;}
+.slide-aibs .stat-unit{
+  font-size:clamp(24px,3vw,38px);font-weight:700;
+  letter-spacing:-.01em;color:var(--fg);text-wrap:balance;
+}
+.slide-aibs .stat-rule{
+  width:96px;height:5px;border-radius:3px;background:var(--aurora);
+}
+.slide-aibs .stat-claim{
+  font-size:clamp(20px,2.4vw,28px);line-height:1.3;font-weight:600;
+  color:var(--fg);margin:0;max-width:36ch;text-wrap:balance;
+}
+.slide-aibs .stat-context{
+  font-size:15px;line-height:1.6;color:var(--fg-muted);margin:0;
+  max-width:64ch;text-wrap:pretty;
+}
+
+/* ── Slide 32 – Zava DIY Warehouse Implementation ───────────────────────── */
+.slide-aibs .slide-zava{display:flex;flex-direction:column;gap:14px;}
+.slide-aibs .zava-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);margin:0;
+}
+.slide-aibs .zava-title{
+  margin:0;line-height:1.1;
+}
+.slide-aibs .zava-sub{
+  font-size:14px;line-height:1.55;color:var(--fg-muted);margin:0;
+  max-width:78ch;text-wrap:pretty;
+}
+.slide-aibs .zava-sub strong{color:var(--fg);font-weight:600;}
+
+.slide-aibs .zava-floor{
+  display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+  padding:18px 16px;border-radius:12px;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.018) 0 6px,transparent 6px 12px),rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.08);
+  margin-top:4px;
+}
+
+/* Inbound + outbound flow rails */
+.slide-aibs .zava-flow{
+  display:flex;align-items:center;gap:8px;flex-direction:row;
+}
+.slide-aibs .zava-flow-out{justify-content:flex-end;}
+.slide-aibs .zava-truck{font-size:28px;line-height:1;filter:saturate(1.1);}
+.slide-aibs .zava-arrow{
+  font-size:20px;font-weight:800;color:var(--coral);
+  letter-spacing:-.05em;line-height:1;
+}
+.slide-aibs .zava-bay{
+  display:flex;align-items:center;justify-content:center;
+  padding:14px 12px;border-radius:8px;
+  min-width:80px;min-height:68px;text-align:center;
+  font-size:12.5px;font-weight:700;color:#fff;line-height:1.25;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.18);
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+.slide-aibs .zava-bay-label small{
+  display:block;margin-top:2px;font-size:10.5px;
+  font-weight:500;opacity:.75;letter-spacing:.02em;
+}
+.slide-aibs .zava-bay-reception{
+  background:linear-gradient(135deg,#B146C2 0%,#9534A3 100%);
+  border-color:rgba(177,70,194,.6);
+}
+.slide-aibs .zava-bay-pick{
+  background:linear-gradient(135deg,#F5A742 0%,#E08A1F 100%);
+  border-color:rgba(245,167,66,.6);color:#1a0e00;
+  text-shadow:none;
+}
+.slide-aibs .zava-bay-pack{
+  background:linear-gradient(135deg,#E8554E 0%,#C7372F 100%);
+  border-color:rgba(232,85,78,.6);
+}
+.slide-aibs .zava-bay-stage{
+  background:linear-gradient(135deg,#F2D266 0%,#D9B43A 100%);
+  border-color:rgba(242,210,102,.6);color:#1a1300;
+  text-shadow:none;
+}
+
+/* Central warehouse grid */
+.slide-aibs .zava-warehouse{
+  display:flex;flex-direction:column;gap:8px;
+  padding:14px 16px;border-radius:10px;
+  background:rgba(0,0,0,.32);
+  border:1px dashed rgba(227,0,140,.45);
+  position:relative;
+}
+.slide-aibs .zava-warehouse-cap{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--fg-muted);margin-bottom:2px;
+}
+.slide-aibs .zava-cap-arrow{font-size:14px;color:var(--coral);}
+.slide-aibs .zava-grid{
+  display:flex;flex-direction:column;gap:6px;
+}
+.slide-aibs .zava-grid-row{
+  display:grid;grid-template-columns:repeat(3,1fr) auto;gap:6px;align-items:center;
+}
+.slide-aibs .zava-cube{
+  padding:14px 6px;text-align:center;
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:12px;font-weight:700;letter-spacing:.04em;
+  color:#fff;border-radius:4px;
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.08), inset -2px -2px 0 rgba(0,0,0,.25);
+}
+.slide-aibs .zava-cube-blue{
+  background:linear-gradient(135deg,#7BC9FF 0%,#4A9FE0 100%);
+  color:#001a2e;
+}
+.slide-aibs .zava-cube-dark{
+  background:linear-gradient(135deg,#3A3A4A 0%,#1F1F2E 100%);
+  color:#fff;
+}
+.slide-aibs .zava-row-tag{
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  white-space:nowrap;padding-left:8px;
+}
+.slide-aibs .zava-tag-back{color:#9DD2FF;}
+.slide-aibs .zava-tag-front{color:#D9D9E5;}
+.slide-aibs .zava-warehouse-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-top:6px;border-top:1px dashed rgba(255,255,255,.1);
+}
+.slide-aibs .zava-foot-pill{
+  font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:3px 9px;border-radius:999px;
+  background:rgba(227,0,140,.15);color:#FF6BC0;
+  border:1px solid rgba(227,0,140,.4);
+}
+.slide-aibs .zava-foot-coords{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:10px;color:var(--fg-muted);letter-spacing:.06em;opacity:.85;
+}
+
+/* Coordinate legend */
+.slide-aibs .zava-coords-strip{
+  display:flex;flex-direction:column;gap:8px;
+  padding:10px 14px;border-radius:8px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+}
+.slide-aibs .zava-coords-title{
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--fg-muted);
+}
+.slide-aibs .zava-coords-row{
+  display:flex;gap:18px;flex-wrap:wrap;
+}
+.slide-aibs .zava-coord{display:flex;flex-direction:column;gap:1px;}
+.slide-aibs .zava-coord-val{
+  font-family:var(--font-display,var(--font-body));
+  font-size:24px;font-weight:800;line-height:1;color:var(--fg);
+  letter-spacing:-.02em;
+}
+.slide-aibs .zava-coord-name{
+  font-size:12px;color:var(--fg-muted);font-weight:500;
+}
+
+/* ── Slide 21 – Build Effort Estimate (table + side panel) ──────────────── */
+.slide-aibs .effort-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:20px;
+  margin:0 0 18px;flex-wrap:wrap;
+}
+.slide-aibs .effort-h2{margin:0;flex:1 1 auto;}
+.slide-aibs .effort-stack-tag{
+  flex:0 0 auto;align-self:center;
+  font-size:11px;font-weight:700;letter-spacing:.14em;
+  color:var(--fg);
+  padding:6px 14px;border-radius:999px;
+  background:var(--aurora);
+  -webkit-background-clip:padding-box;background-clip:padding-box;
+}
+.slide-aibs .effort-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:22px;
+}
+.slide-aibs .effort-table{
+  width:100%;border-collapse:collapse;font-size:13px;
+  background:rgba(255,255,255,.03);border-radius:10px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+}
+.slide-aibs .effort-table th,
+.slide-aibs .effort-table td{
+  padding:10px 14px;text-align:left;line-height:1.4;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.slide-aibs .effort-table th{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);background:rgba(227,0,140,.06);
+}
+.slide-aibs .effort-table tbody tr:last-child td{border-bottom:none;}
+.slide-aibs .effort-scope{font-weight:700;color:var(--fg);white-space:nowrap;}
+.slide-aibs .effort-tools-pill{
+  display:inline-block;font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:12px;font-weight:600;color:#E3B8E8;
+  padding:2px 8px;border-radius:999px;
+  background:rgba(177,70,194,.14);border:1px solid rgba(177,70,194,.3);
+}
+.slide-aibs .effort-complexity{white-space:nowrap;color:var(--fg);font-weight:600;}
+.slide-aibs .effort-dot{
+  display:inline-block;width:8px;height:8px;border-radius:50%;
+  margin-right:8px;vertical-align:middle;
+}
+.slide-aibs .effort-dot-low{background:#6BD49C;box-shadow:0 0 0 3px rgba(56,176,109,.18);}
+.slide-aibs .effort-dot-medium{background:#FFD56B;box-shadow:0 0 0 3px rgba(255,193,7,.18);}
+.slide-aibs .effort-dot-high{background:#FF6BC0;box-shadow:0 0 0 3px rgba(227,0,140,.18);}
+.slide-aibs .effort-notes{font-size:12px;color:var(--fg-muted);}
+.slide-aibs .effort-table tfoot td{
+  background:rgba(177,70,194,.10);font-size:13px;color:var(--fg);
+  border-top:1px solid rgba(177,70,194,.30);border-bottom:none;
+}
+.slide-aibs .effort-total-label{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .effort-total-tools strong,
+.slide-aibs .effort-total-meta strong{
+  font-family:var(--font-display,var(--font-body));font-weight:800;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .effort-total-meta{color:var(--fg-muted);font-size:12px;}
+
+.slide-aibs .effort-stack{
+  padding:18px 18px;border-radius:12px;
+  background:linear-gradient(160deg,rgba(91,95,199,.12) 0%,rgba(227,0,140,.10) 100%);
+  border:1px solid rgba(177,70,194,.25);
+  display:flex;flex-direction:column;gap:10px;align-self:start;
+}
+.slide-aibs .effort-stack-eyebrow{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .effort-stack-list{
+  list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;
+}
+.slide-aibs .effort-stack-list li{
+  font-size:13px;line-height:1.45;color:var(--fg);
+  padding-left:16px;position:relative;
+}
+.slide-aibs .effort-stack-list li::before{
+  content:"";position:absolute;left:0;top:6px;
+  width:6px;height:6px;border-radius:50%;background:var(--aurora);
+}
+.slide-aibs .effort-stack-list code{
+  font-family:var(--font-mono,'JetBrains Mono',monospace);
+  font-size:11px;padding:1px 4px;border-radius:3px;
+  background:rgba(177,70,194,.14);color:#E3B8E8;
+}
+
+/* ── Slide 02 – Title hero ──────────────────────────────────────────────── */
+.slide-aibs .title-hero{
+  display:flex;flex-direction:column;justify-content:center;gap:24px;
+  min-height:60vh;
+}
+.slide-aibs .title-hero-eyebrow{
+  font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .title-hero-h1{
+  font-family:var(--font-display,var(--font-body));
+  font-size:clamp(56px,7vw,104px);line-height:.96;
+  font-weight:900;letter-spacing:-.035em;text-wrap:balance;
+  margin:0;max-width:18ch;
+  background:var(--aurora);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .title-hero-rule{
+  width:100px;height:5px;border-radius:3px;background:var(--aurora);
+}
+.slide-aibs .title-hero-authors{
+  display:flex;flex-direction:column;gap:4px;
+  font-family:var(--font-display,var(--font-body));
+}
+.slide-aibs .title-hero-names{
+  font-size:22px;font-weight:700;color:var(--fg);letter-spacing:-.005em;
+}
+.slide-aibs .title-hero-role{
+  font-size:14px;color:var(--fg-muted);font-weight:500;letter-spacing:.005em;
+}
+
+/* ── Slide 09 – Five drivers grid ───────────────────────────────────────── */
+.slide-aibs .driver-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:6px;
+}
+@media (max-width:1100px){
+  .slide-aibs .driver-grid{grid-template-columns:repeat(3,1fr);}
+}
+.slide-aibs .driver-card{
+  padding:16px 18px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden;
+}
+.slide-aibs .driver-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--aurora);
+}
+.slide-aibs .driver-num{
+  font-family:var(--font-display,var(--font-body));
+  font-size:12px;font-weight:800;letter-spacing:.08em;
+  color:var(--coral);opacity:.85;
+}
+.slide-aibs .driver-title{
+  font-size:15px;font-weight:700;line-height:1.25;color:var(--fg);
+  letter-spacing:-.005em;margin:0;text-wrap:balance;
+}
+.slide-aibs .driver-desc{
+  font-size:13px;line-height:1.55;color:var(--fg-muted);margin:0;text-wrap:pretty;
+}
+
+/* ── Slide 10 – AI-First Toolbelt ───────────────────────────────────────── */
+.slide-aibs .toolbelt-section{
+  margin:14px 0;padding:14px 16px;border-radius:10px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+}
+.slide-aibs .toolbelt-section-head{
+  display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px;
+}
+.slide-aibs .toolbelt-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .toolbelt-section-sub{
+  font-size:11px;color:var(--fg-muted);display:flex;gap:10px;flex-wrap:wrap;
+}
+.slide-aibs .toolbelt-legend{
+  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 8px;border-radius:999px;line-height:1.4;
+}
+.slide-aibs .toolbelt-legend-pre{background:rgba(91,95,199,.16);color:#9DA1E8;border:1px solid rgba(91,95,199,.4);}
+.slide-aibs .toolbelt-legend-del{background:rgba(227,0,140,.14);color:#FF6BC0;border:1px solid rgba(227,0,140,.4);}
+.slide-aibs .toolbelt-row{
+  display:grid;grid-template-columns:200px 1fr 1fr;gap:14px;
+  padding:8px 0;border-top:1px solid rgba(255,255,255,.06);
+  align-items:start;
+}
+.slide-aibs .toolbelt-row:first-of-type,
+.slide-aibs .toolbelt-row.toolbelt-row-head{border-top:none;}
+.slide-aibs .toolbelt-row-head{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fg-muted);padding:4px 0 6px;
+}
+.slide-aibs .toolbelt-col-label{color:var(--coral);}
+.slide-aibs .toolbelt-row-name{
+  font-size:13px;font-weight:700;color:var(--fg);line-height:1.3;
+}
+.slide-aibs .toolbelt-cell{
+  font-size:13px;line-height:1.5;color:var(--fg-muted);text-wrap:pretty;
+}
+
+.slide-aibs .agent-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;}
+.slide-aibs .agent-list > li{
+  display:grid;grid-template-columns:90px 200px 1fr;gap:14px;align-items:start;
+  padding:6px 0;border-top:1px solid rgba(255,255,255,.06);
+}
+.slide-aibs .agent-list > li:first-child{border-top:none;}
+.slide-aibs .agent-tag{
+  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:2px 8px;border-radius:999px;line-height:1.5;
+  align-self:start;text-align:center;width:fit-content;
+}
+.slide-aibs .agent-tag-pre{background:rgba(91,95,199,.16);color:#9DA1E8;border:1px solid rgba(91,95,199,.4);}
+.slide-aibs .agent-tag-del{background:rgba(227,0,140,.14);color:#FF6BC0;border:1px solid rgba(227,0,140,.4);}
+.slide-aibs .agent-tag-both{background:rgba(177,70,194,.16);color:#E3B8E8;border:1px solid rgba(177,70,194,.4);}
+.slide-aibs .agent-name{font-size:13px;font-weight:700;color:var(--fg);line-height:1.3;}
+.slide-aibs .agent-desc{font-size:13px;line-height:1.5;color:var(--fg-muted);text-wrap:pretty;}
+
+.slide-aibs .enabled-strip{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-top:14px;padding:12px 16px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(91,95,199,.12) 0%,rgba(227,0,140,.10) 100%);
+  border:1px solid rgba(177,70,194,.25);
+}
+.slide-aibs .enabled-label{
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .enabled-pill{
+  font-size:12px;font-weight:600;color:var(--fg);
+  padding:4px 12px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+}
+
+/* ── Slide 12 – Evolution: 3 transformation pairs ───────────────────────── */
+.slide-aibs .evo-grid{
+  display:flex;flex-direction:column;gap:14px;margin-top:18px;
+}
+.slide-aibs .evo-pair{
+  padding:18px 22px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:10px;
+}
+.slide-aibs .evo-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .evo-pair-row{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;
+}
+.slide-aibs .evo-from,
+.slide-aibs .evo-to{
+  font-family:var(--font-display,var(--font-body));
+  font-size:clamp(20px,2.4vw,32px);font-weight:800;letter-spacing:-.015em;
+  line-height:1.1;text-wrap:balance;
+}
+.slide-aibs .evo-from{color:var(--fg-muted);text-align:right;}
+.slide-aibs .evo-to{
+  text-align:left;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .evo-arrow{
+  font-size:28px;font-weight:700;color:var(--coral);line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+
+/* ── Slide 13 – Approach lifecycle ──────────────────────────────────────── */
+.slide-aibs .lifecycle{
+  display:grid;grid-template-columns:1fr 1.3fr;gap:18px;margin-top:8px;
+}
+.slide-aibs .lifecycle-phase{
+  padding:16px 18px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:10px;
+}
+.slide-aibs .lifecycle-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:8px;
+}
+.slide-aibs .lifecycle-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 10px;border-radius:999px;
+}
+.slide-aibs .lifecycle-eyebrow-pre{background:rgba(91,95,199,.16);color:#9DA1E8;border:1px solid rgba(91,95,199,.4);}
+.slide-aibs .lifecycle-eyebrow-del{background:rgba(227,0,140,.14);color:#FF6BC0;border:1px solid rgba(227,0,140,.4);}
+.slide-aibs .lifecycle-stage{
+  font-family:var(--font-display,var(--font-body));
+  font-size:13px;font-weight:700;color:var(--fg);letter-spacing:-.005em;
+}
+.slide-aibs .cap-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;}
+.slide-aibs .cap-list > li{
+  display:flex;flex-direction:column;gap:1px;
+  padding:5px 0;border-top:1px solid rgba(255,255,255,.05);
+}
+.slide-aibs .cap-list > li:first-child{border-top:none;padding-top:0;}
+.slide-aibs .cap-list-dense > li{padding:4px 0;}
+.slide-aibs .cap-name{font-size:12px;font-weight:700;color:var(--fg);letter-spacing:-.005em;line-height:1.25;}
+.slide-aibs .cap-desc{font-size:12px;line-height:1.45;color:var(--fg-muted);text-wrap:pretty;}
+
+.slide-aibs .foundation-strip{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  margin-top:14px;padding:12px 14px;border-radius:10px;
+  background:linear-gradient(135deg,rgba(91,95,199,.12) 0%,rgba(227,0,140,.10) 100%);
+  border:1px solid rgba(177,70,194,.25);
+}
+.slide-aibs .foundation-cell{display:flex;flex-direction:column;gap:2px;}
+.slide-aibs .foundation-label{
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .foundation-val{font-size:12px;font-weight:600;color:var(--fg);line-height:1.3;}
+.slide-aibs .lifecycle-disclaimer{
+  margin-top:8px;font-size:11px;font-style:italic;color:var(--fg-muted);opacity:.7;
+}
+
+/* ── Slide 14 – Work IQ flow ────────────────────────────────────────────── */
+.slide-aibs .workiq-flow{
+  display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px;
+}
+.slide-aibs .workiq-tier{display:flex;gap:14px;width:100%;justify-content:center;align-items:stretch;}
+.slide-aibs .workiq-tier-label{
+  position:absolute;left:0;top:8px;
+  font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--coral);opacity:.7;
+}
+.slide-aibs .workiq-tier-sources{position:relative;}
+.slide-aibs .workiq-source{
+  flex:1 1 0;max-width:320px;padding:14px 18px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);
+  display:flex;flex-direction:column;gap:4px;text-align:center;
+}
+.slide-aibs .workiq-source-name{font-size:14px;font-weight:700;color:var(--fg);line-height:1.25;}
+.slide-aibs .workiq-source-sub{font-size:11px;color:var(--fg-muted);}
+.slide-aibs .workiq-source-conn{border-color:rgba(91,95,199,.4);}
+
+.slide-aibs .workiq-arrow{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  position:relative;height:36px;
+}
+.slide-aibs .workiq-arrow::before{
+  content:"";width:2px;flex:1;background:var(--aurora);border-radius:2px;
+}
+.slide-aibs .workiq-arrow::after{
+  content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:6px solid transparent;border-right:6px solid transparent;
+  border-top:8px solid #B146C2;
+}
+.slide-aibs .workiq-arrow-label{
+  position:absolute;left:calc(50% + 14px);top:50%;transform:translateY(-50%);
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--coral);white-space:nowrap;
+}
+
+.slide-aibs .workiq-core{
+  width:100%;max-width:680px;padding:22px 28px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(91,95,199,.18) 0%,rgba(227,0,140,.14) 100%);
+  border:1px solid rgba(227,0,140,.35);
+  display:flex;flex-direction:column;gap:6px;text-align:center;align-items:center;
+  box-shadow:0 8px 28px rgba(177,70,194,.18);
+}
+.slide-aibs .workiq-core-eyebrow{
+  font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--coral);
+}
+.slide-aibs .workiq-core-title{
+  font-family:var(--font-display,var(--font-body));
+  font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.slide-aibs .workiq-core-sub{
+  font-size:13px;line-height:1.55;color:var(--fg-muted);max-width:48ch;text-wrap:pretty;
+}
+
+.slide-aibs .workiq-tier-clients{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.slide-aibs .workiq-client{
+  padding:14px 16px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(177,70,194,.3);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  min-height:60px;
+}
+.slide-aibs .workiq-client-name{font-size:13px;font-weight:700;color:var(--fg);line-height:1.3;}
+
+/* ── Slide 18 / 23 – Agentic CRM/ERP stack ──────────────────────────────── */
+.slide-aibs .stack-arch{
+  display:flex;flex-direction:column;gap:8px;margin-top:14px;
+}
+.slide-aibs .stack-layer{
+  display:flex;align-items:center;gap:18px;
+  padding:14px 20px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  position:relative;overflow:hidden;
+}
+.slide-aibs .stack-layer::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--aurora);
+}
+.slide-aibs .stack-layer-1{background:linear-gradient(90deg,rgba(91,95,199,.18) 0%,rgba(91,95,199,.06) 100%);}
+.slide-aibs .stack-layer-2{background:linear-gradient(90deg,rgba(123,73,195,.16) 0%,rgba(123,73,195,.05) 100%);}
+.slide-aibs .stack-layer-3{background:linear-gradient(90deg,rgba(177,70,194,.18) 0%,rgba(177,70,194,.06) 100%);}
+.slide-aibs .stack-layer-4{background:linear-gradient(90deg,rgba(201,64,168,.16) 0%,rgba(201,64,168,.05) 100%);}
+.slide-aibs .stack-layer-5{background:linear-gradient(90deg,rgba(227,0,140,.16) 0%,rgba(227,0,140,.05) 100%);}
+.slide-aibs .stack-num{
+  flex:0 0 auto;font-family:var(--font-display,var(--font-body));
+  font-size:24px;font-weight:800;letter-spacing:-.02em;
+  background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;
+  min-width:38px;
+}
+.slide-aibs .stack-body{display:flex;flex-direction:column;gap:3px;flex:1 1 auto;}
+.slide-aibs .stack-title{
+  font-size:15px;font-weight:700;color:var(--fg);line-height:1.3;letter-spacing:-.005em;
+}
+.slide-aibs .stack-desc{
+  font-size:13px;line-height:1.5;color:var(--fg-muted);text-wrap:pretty;
+}
+
+</style>
+</head>
+<body>
+
+<div id="header-link"><span>AIBS &middot; AI Business Solutions for Dynamics &middot; Frontier Consultancy</span></div>
+<div id="progress"></div>
+<nav id="chapters"></nav>
+<nav id="nav"></nav>
+<div id="counter"><span>1</span> / -</div>
+<div id="keys"><span class="key">&uarr;</span><span class="key">&darr;</span> navigate</div>
+
+<div id="deck">
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-02" data-label="Frontier Application Consultancy AI Business Solutions" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 01 / 37</div>
+    
+    <div class="title-hero">
+      <div class="title-hero-eyebrow">Frontier Application Consultancy</div>
+      <h1 class="title-hero-h1">AI Business Solutions</h1>
+      <div class="title-hero-rule"></div>
+      <div class="title-hero-authors">
+        <div class="title-hero-names">Giel Cuijpers &amp; Marvin Heilemann</div>
+        <div class="title-hero-role">Enterprise Partner Solution Architects</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-03" data-label="Agenda" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 02 / 37</div>
+    <h2 class="slide-h2">Agenda</h2>
+    <div class="structured-body">
+<ul>
+<li>Frontier Firms &amp; Agentic CRM/ERP</li>
+<li>Becoming an AI-first implementation partner</li>
+<li>Vibe Configuration with Dynamics 365</li>
+<li>Responsible AI</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-04" data-label="The Microsoft Why" data-notes="Bullet #1: Dynamics 365 Partner technical capacity is lacking, and utilizing AI capabilities will increase capacity. Bullet #2: Using AI capabilities will decrease implementation cost, therefore hurdle to invest in new solutions goes down. It ofcourse also improves the compete situation compared to non-Microsoft solutions. Bullet #3: Decreased implementation times may lead to revenue compression. In order to develop an AI related skillset that would lead to increased license revenue for AI workloads, Dynamics 365 consultants need to understand the potential of AI by experiencing it in their own work. Bullet #4: Dynamics 365 partners are more business process oriented. Coupling their process knowledge with an AI skillset will deliver more impactful agentic solutions at customers. Bullet #5: Drive internal consumption of Microsoft AI tooling, depending on technical solution direction chosen by the partner. The next slides contains “The Partner Why”.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 03 / 37</div>
+    <h2 class="slide-h2">The Microsoft Why</h2>
+    <div class="structured-body">
+<ul>
+<li>Microsoft internal info. Delete slide when presenting to a partner or customer audience.</li>
+<li>This is a Partner Zero play. Why invest effort in Frontier Application Consultancy?</li>
+<li>Increase partner pre-sales and delivery capacity</li>
+<li>Decrease Dynamics 365 implementation cost and lead-time</li>
+<li>Develop additional partner skills to enable additional AI revenue streams</li>
+<li>Combining business process knowledge with AI skills leads to more impactful solutions</li>
+<li>Drive partner internal consumption of M365 Copilot, Github Copilot, Copilot Studio Credits and ACR.</li>
+<li>Microsoft internal info. Delete slide when presenting to a partner or customer audience.</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-05" data-label="What we’re hearing from partners" data-notes="These are some of the remarks from partners when asked where AI capabilities could help in their daily work.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 04 / 37</div>
+    <h2 class="slide-h2">What we’re hearing from partners</h2>
+    <div class="structured-body">
+<ul>
+<li>There is a shortage of skilled consultants and therefore a drive to reduce the ”boring work”.</li>
+<li>Dynamics 365 implementations can be long leading, so costly for customers, with uncertain outcomes.</li>
+<li>Customers are considering agents as part of a M365 Copilot rollout and want to expand to CRM and ERP.</li>
+<li>We need to develop a skillset for the AI era.</li>
+<li>Customer key user education is challenging.</li>
+<li>Key users have little time to deal with Dynamics 365 specifics.</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-06" data-label="📅 Today — where your team’s time actually goes" data-notes="Key Messages Presented On a typical D365 implementation, 25% of expert consultant time is consumed by low-value, repetitive tasks that AI + MCP can handle today. For a 10-person team, that equates to 2.5 FTEs spending their day on work clients aren&#x27;t paying for. Automating this layer reclaims approximately ~12% of total project effort per engagement. Time Allocation — Today vs. With AI + MCP">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 05 / 37</div>
+    
+    <h2 class="slide-h2">Your Best People Deserve Better Than Boring Work</h2>
+    <p class="opp-lead">On a typical D365 implementation, 25% of expert time disappears into tasks that AI + MCP can handle.</p>
+
+    <div class="timebars">
+      <div class="timebar-block">
+        <div class="timebar-label"><span class="timebar-icon">📅</span> Today. Where your team&rsquo;s time actually goes</div>
+        <div class="timebar-row">
+          <div class="timebar-seg timebar-seg-strategic" style="flex:35;">
+            <span class="timebar-seg-name">Strategic</span>
+            <span class="timebar-seg-pct">35%</span>
+          </div>
+          <div class="timebar-seg timebar-seg-delivery" style="flex:40;">
+            <span class="timebar-seg-name">Delivery</span>
+            <span class="timebar-seg-pct">40%</span>
+          </div>
+          <div class="timebar-seg timebar-seg-boring" style="flex:25;">
+            <span class="timebar-seg-name">Boring Work</span>
+            <span class="timebar-seg-pct">25%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="timebar-block">
+        <div class="timebar-label"><span class="timebar-icon">✅</span> With AI + MCP. Where your team&rsquo;s time should go</div>
+        <div class="timebar-row">
+          <div class="timebar-seg timebar-seg-strategic" style="flex:45;">
+            <span class="timebar-seg-name">Strategic</span>
+            <span class="timebar-seg-pct">45% <span class="timebar-delta">▲ +10%</span></span>
+          </div>
+          <div class="timebar-seg timebar-seg-delivery" style="flex:50;">
+            <span class="timebar-seg-name">Delivery</span>
+            <span class="timebar-seg-pct">50% <span class="timebar-delta">▲ +10%</span></span>
+          </div>
+          <div class="timebar-seg timebar-seg-aimcp" style="flex:5;">
+            <span class="timebar-seg-pct">5%</span>
+          </div>
+        </div>
+        <div class="timebar-aimcp-note">
+          <span class="timebar-aimcp-tag">AI + MCP handles this</span>
+          <span class="timebar-aimcp-tools">GitHub Copilot &middot; D365 ERP/Dataverse MCP &middot; ADO MCP Server &middot; Copilot Studio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="timebar-callout">
+      <div class="timebar-callout-body">
+        <span class="timebar-callout-icon" aria-hidden="true">💡</span>
+        <p>On a 10-person D365 team, 25% boring work = <strong>2.5 FTEs</strong> spending their day on tasks AI can do. With Azure DevOps MCP, D365 MCP &amp; GitHub Copilot, that time flows back to what your consultants love.</p>
+      </div>
+      <div class="timebar-callout-stat">
+        <strong>~12%</strong>
+        <span>of total project effort reclaimed per engagement</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-07" data-label="The Opportunity to decrease implementation cost and time" data-notes="According to a report by Mint Jutras, the average time for (for instance) an ERP implementation, including integration with existing systems, is 17 months [8]. This extended timeline can be attributed to the challenges in mapping business processes, data migration, bespoke functionality design, key user education, end user training, etcetera. &lt;click&gt; By using AI capabilities, the cost and timeline can be reduced because work can be offloaded to AI capabilities. &lt;click&gt; A study from Gartner suggests that by using AI capabilities, 20-30% of timeline acceleration is possible, with a 30-40% cost decrease. This positively impacts the customer TCO, and therefore the decision to invest in a LoB modernization project. &lt;click&gt; The freed-up budget and time could be used by taking on additional scope for this customer or another.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 06 / 37</div>
+    
+    <h2 class="slide-h2">The Opportunity to decrease implementation cost and time</h2>
+    <p class="opp-lead">Traditional LoB implementations are lengthy, costly, and can be risky.</p>
+
+    <div class="tco">
+      <div class="tco-axis">
+        <span class="tco-axis-arrow tco-axis-arrow-l"><svg class="tco-axis-line" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"><path d="M99 6 H 8"/><path d="M14 1 L 6 6 L 14 11"/></g></svg></span>
+        <span class="tco-axis-title">Customer TCO</span>
+        <span class="tco-axis-arrow tco-axis-arrow-r"><svg class="tco-axis-line" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"><path d="M1 6 H 92"/><path d="M86 1 L 94 6 L 86 11"/></g></svg></span>
+      </div>
+
+      <div class="tco-row">
+        <div class="tco-bar tco-bar-trad">
+          <span class="tco-icons"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg></span>
+          <span class="tco-label">Traditional implementation cost and timeline</span>
+          <span class="tco-badge"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12"/><path d="M7 3v2c0 3 2 4 5 7 3-3 5-4 5-7V3"/><path d="M7 21v-2c0-3 2-4 5-7 3 3 5 4 5 7v2"/></g></svg><span class="tco-badge-text"><span class="tco-badge-line"><strong>17 months</strong><sup>1</sup></span><span class="tco-badge-sub">(ERP example)</span></span></span>
+        </div>
+      </div>
+
+      <div class="tco-row tco-row-acc">
+        <div class="tco-bar tco-bar-acc">
+          <span class="tco-icons"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 1 4 3 3 0 0 0 4 3v-2"/><path d="M9 4v15"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-1 4 3 3 0 0 1-4 3v-2"/><path d="M15 4v15"/></g></svg><span class="tco-plus">+</span><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="11" rx="2.5"/><circle cx="9.5" cy="14" r="1" fill="currentColor"/><circle cx="14.5" cy="14" r="1" fill="currentColor"/><path d="M12 4v3M9 6h6"/><path d="M3 13v3M21 13v3"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="11" rx="2.5"/><circle cx="9.5" cy="14" r="1" fill="currentColor"/><circle cx="14.5" cy="14" r="1" fill="currentColor"/><path d="M12 4v3M9 6h6"/><path d="M3 13v3M21 13v3"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="11" rx="2.5"/><circle cx="9.5" cy="14" r="1" fill="currentColor"/><circle cx="14.5" cy="14" r="1" fill="currentColor"/><path d="M12 4v3M9 6h6"/><path d="M3 13v3M21 13v3"/></g></svg><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="9" width="14" height="11" rx="2.5"/><circle cx="9.5" cy="14" r="1" fill="currentColor"/><circle cx="14.5" cy="14" r="1" fill="currentColor"/><path d="M12 4v3M9 6h6"/><path d="M3 13v3M21 13v3"/></g></svg></span>
+          <span class="tco-label">Accelerated implementation cost and timeline</span>
+        </div>
+        <div class="tco-curve-wrap"><svg class="tco-curve" viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M88 6 C 96 30, 78 52, 16 50"/><path d="M26 42 L 16 50 L 26 58"/></g></svg></div>
+      </div>
+    </div>
+
+    <ul class="opp-stat-list opp-stat-list-tco">
+      <li><strong>20–30%</strong> timeline acceleration in migrating / modernizing workloads<sup>2</sup></li>
+      <li><strong>30–40%</strong> lower cost of migration and modernization of workloads<sup>2</sup></li>
+    </ul>
+
+    <ol class="opp-sources">
+      <li>International Research Journal of Engineering and Technology, “The Future of ERP Integrations: A Look at Emerging Technologies” – 2024</li>
+      <li>McKinsey, “In search of cloud value: Can generative AI transform cloud ROI?” – 2023</li>
+    </ol>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-section-divider" id="slide-08" data-label="How to become an AI-first implementation partner" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 07 / 37</div>
+    <div class="section-divider-inner">
+      <div class="section-divider-rule" aria-hidden="true"></div>
+      <h2 class="section-divider-title">How to become an AI-first implementation partner</h2>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-09" data-label="How do I organize my practice? The five drivers of AI value" data-notes="So, how to start this transformation? We identified 5 drivers for successful adoption. First, Business Strategy The goal should not be to just play with AI. Your investment into it should align with your strategy and expected business outcomes. Without a measurable strategy, leaders can’t prioritize, fund, or sequence work. Second, Technology &amp; Data Foundations. In order to fully use AI in implementations you need to work on data quality, clear ownership of deliverables and the data platform that will host your digital twin of an implementation. Strong foundations turn experimentation into repeatable value creation. Third, Governance &amp; Security. With Generative AI and agentic systems, risk management becomes more complex. Without strong governance and security guardrails, trust erodes. Fourth, Organization &amp; Culture. Job roles will change and teams will need to uptake new skills and ways of working. Every team member on a project must be motivated to work in this new way of working and keep working this way. Without intentional change management, momentum stalls. Fifth, AI Strategy &amp; Experience. Sustained impact requires a clear, intentional AI experience strategy. AI Developments are going very fast, and the organization must continuously be able to take in new developments, and evaluate current developments still work when for instance a new GenAI model is launched. Sixth, the Interdependencies. These drivers are deeply interconnected. Strengthening one often exposes gaps in others—new AI capabilities require stronger governance, maturing governance highlights data weaknesses, and poor data undermines user trust. Similarly, even a strong strategy fails without a culture ready to execute it. Focusing on any driver in isolation creates blind spots that slow progress.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 08 / 37</div>
+    
+    <h2 class="slide-h2">How do I organize my practice?</h2>
+    <p class="opp-lead">The five drivers of AI value, anchored on one shared goal: <strong>Frontier Transformation</strong>.</p>
+    <div class="driver-grid">
+      <article class="driver-card">
+        <span class="driver-num">01</span>
+        <h3 class="driver-title">Business Strategy</h3>
+        <p class="driver-desc">The alignment of AI investments with strategic business outcomes and measurable impact.</p>
+      </article>
+      <article class="driver-card">
+        <span class="driver-num">02</span>
+        <h3 class="driver-title">Technology &amp; Data Strategy</h3>
+        <p class="driver-desc">The data and infrastructure needed to run AI solutions at scale, securely and reliably.</p>
+      </article>
+      <article class="driver-card">
+        <span class="driver-num">03</span>
+        <h3 class="driver-title">AI Strategy &amp; Experience</h3>
+        <p class="driver-desc">The organization&rsquo;s AI expertise and repeatable processes to create sustainable value.</p>
+      </article>
+      <article class="driver-card">
+        <span class="driver-num">04</span>
+        <h3 class="driver-title">Organization &amp; Culture</h3>
+        <p class="driver-desc">The vision, operating model, skills, resources, and culture to drive AI adoption.</p>
+      </article>
+      <article class="driver-card">
+        <span class="driver-num">05</span>
+        <h3 class="driver-title">AI Governance &amp; Security</h3>
+        <p class="driver-desc">The controls and processes to ensure secure, compliant and responsible AI.</p>
+      </article>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-10" data-label="AI-First Toolbelt Opportunities" data-notes="What we traditionally use (clients, tools and knowledge) M365 Office Suite, SharePoint and Teams Azure DevOps and/or Github Microsoft documentation: MS Learn and Business Process Catalog Partner Best Practice Process documentation (Partner IP) Dynamics 365 and Power Platform DTAP Now moving more towards AI, the following AI first Toolbelt opportunities are available during the delivery phase. &quot;AI-First isn&#x27;t just a buzzword — it&#x27;s our strategic approach to embedding AI across every single touchpoint, from the moment we&#x27;re in a sales conversation to the final delivery sprint.&quot; MCP Tools (top section): MCP Tools can be use across the full engagement lifecycle — Pre-Sales AND Delivery Three tools across the board: Dataverse MCP — config setup in pre-sales, entity/field config in delivery ERP MCP — same pattern: rapid setup → accelerated entity management Development MCP — prototyping &amp; demo prep in pre-sales, accelerated dev in delivery Key point: same toolbelt, different gear depending on the phase Pre-Sales Exclusive (left): Architect Cockpit — rapid solution design, architecture reviews, proposal scoping Pursuit Agent — competitive positioning, staffing help — wins us deals faster SoW Generation/Review Agent — cuts the time to produce a quality statement of work Delivery Exclusive (right): Knowledge Management Agent — our IP doesn&#x27;t walk out the door with a consultant; it&#x27;s captured and reused SDLC Automation — GitHub Copilot + AI ADO assistant; backlog creation at scale, bottleneck identification Closing point: &quot;This isn&#x27;t future-state — these tools exist today. The question isn&#x27;t whether to use AI, it&#x27;s whether we adopt it fast enough to stay ahead.&quot;">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 09 / 37</div>
+    
+    <div class="effort-head">
+      <h2 class="slide-h2 effort-h2">AI-First Toolbelt Opportunities</h2>
+      <span class="effort-stack-tag">AI-FIRST FRAMEWORK</span>
+    </div>
+    <p class="opp-lead">AI-First Consulting as the strategic approach to integrate AI across every process and engagement, from presales to delivery, enabling faster, outcome-based delivery and greater efficiency.</p>
+
+    <div class="toolbelt-section">
+      <div class="toolbelt-section-head">
+        <span class="toolbelt-eyebrow">MCP Tools</span>
+        <span class="toolbelt-section-sub">Used across the full engagement lifecycle</span>
+      </div>
+      <div class="toolbelt-row toolbelt-row-head">
+        <div class="toolbelt-row-name">&nbsp;</div>
+        <div class="toolbelt-col-label">Pre-Sales</div>
+        <div class="toolbelt-col-label">Delivery</div>
+      </div>
+      <div class="toolbelt-row">
+        <div class="toolbelt-row-name">Dataverse MCP Tool</div>
+        <div class="toolbelt-cell">Rapid configuration setup.</div>
+        <div class="toolbelt-cell">Entity &amp; field configuration assistance directly from the IDE.</div>
+      </div>
+      <div class="toolbelt-row">
+        <div class="toolbelt-row-name">ERP MCP Tools</div>
+        <div class="toolbelt-cell">Rapid configuration setup.</div>
+        <div class="toolbelt-cell">Accelerated entity management and understanding.</div>
+      </div>
+      <div class="toolbelt-row">
+        <div class="toolbelt-row-name">Development MCP Tool</div>
+        <div class="toolbelt-cell">Rapid prototyping and demo preparation.</div>
+        <div class="toolbelt-cell">Accelerated development.</div>
+      </div>
+    </div>
+
+    <div class="toolbelt-section">
+      <div class="toolbelt-section-head">
+        <span class="toolbelt-eyebrow">Agents</span>
+        <span class="toolbelt-section-sub"><span class="toolbelt-legend toolbelt-legend-pre">Pre-Sales Exclusive</span> <span class="toolbelt-legend toolbelt-legend-del">Delivery Exclusive</span></span>
+      </div>
+      <ul class="agent-list">
+        <li><span class="agent-tag agent-tag-pre">Pre-Sales</span><span class="agent-name">Architect Cockpit</span><span class="agent-desc">Pre-sales solutioning platform helping architects to visualize solution design, architecture reviews, and proposal scoping.</span></li>
+        <li><span class="agent-tag agent-tag-pre">Pre-Sales</span><span class="agent-name">Pursuit Agent</span><span class="agent-desc">Deal insights and support. Identifies competitive positioning, staffing assistance.</span></li>
+        <li><span class="agent-tag agent-tag-pre">Pre-Sales</span><span class="agent-name">SoW Generation / Review Agent</span><span class="agent-desc">Rapid solution design, architecture reviews, and proposal scoping.</span></li>
+        <li><span class="agent-tag agent-tag-both">Both</span><span class="agent-name">Knowledge Management Agent</span><span class="agent-desc">Intellectual property management and reuse across projects.</span></li>
+        <li><span class="agent-tag agent-tag-del">Delivery</span><span class="agent-name">SDLC Automation</span><span class="agent-desc">GitHub Copilot &amp; Azure DevOps AI Assistant. Bottleneck identification, backlog creation at scale.</span></li>
+      </ul>
+    </div>
+
+    <div class="enabled-strip">
+      <span class="enabled-label">Enabled by</span>
+      <span class="enabled-pill">M365 Copilot</span>
+      <span class="enabled-pill">Copilot Studio</span>
+      <span class="enabled-pill">Visual Studio Code</span>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-12" data-label="Evolution of business applications" data-notes="Lets just take a moment to unlock what Dynamics 365 Agentic ERP is We’re fundamentally rethinking the stack as we articulate the value that agents brings to ERP. In the past, apps were the interface, workflows were hard-coded, and data lived in tables. But in an AI-first world, the new stack looks very different: - Copilot becomes the UI — natural language, not forms, becomes how users engage - Agents become the execution layer — they handle orchestration, exception management, and automation across systems - Knowledge replaces raw data — AI turns unstructured and structured data into reasoning-ready knowledge Together — people, Copilot, and agents — form a new loop of business processes, productivity, decision-making, and scale. This isn’t just a platform evolution — it’s a paradigm shift.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 10 / 37</div>
+    
+    <h2 class="slide-h2">Evolution of business applications</h2>
+    <p class="opp-lead">Three layers of every business application are being rewritten at the same time.</p>
+    <div class="evo-grid">
+      <div class="evo-pair">
+        <span class="evo-eyebrow">Surface</span>
+        <div class="evo-pair-row">
+          <div class="evo-from">Apps as UI</div>
+          <div class="evo-arrow" aria-hidden="true">&rarr;</div>
+          <div class="evo-to">Copilot as UI</div>
+        </div>
+      </div>
+      <div class="evo-pair">
+        <span class="evo-eyebrow">Logic</span>
+        <div class="evo-pair-row">
+          <div class="evo-from">Workflows</div>
+          <div class="evo-arrow" aria-hidden="true">&rarr;</div>
+          <div class="evo-to">Agents</div>
+        </div>
+      </div>
+      <div class="evo-pair">
+        <span class="evo-eyebrow">Substrate</span>
+        <div class="evo-pair-row">
+          <div class="evo-from">Data</div>
+          <div class="evo-arrow" aria-hidden="true">&rarr;</div>
+          <div class="evo-to">Knowledge</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-13" data-label="Frontier Application Consultancy | Approach" data-notes="Taking an AI first approach to Application Consultancy resolves around a data driven approach using Clients, Tools and Knowledge. Clients are the AI UI used to perform activitities. Tools are your means to automate actions. Knowledge holds the data that enable AI scenarios. This slide shows a non exhaustive list of example scenarios where AI can be applied to leviate tasks. We adopted Success By Design which is the Dynamics 365 Deliver Framework maintained by FastTrack for Dynamics 365. Examples of scenarios: Presales demo Doing personalized demo’s that do not take weeks to prepare. Workshops Capture decisions and actions using Copilot in Teams and Generate decision documents, configuration data and acceptance tests in Word. This is Knowledge to be reused. Configuration Use Github Copilot and D365 MCP server to ”Vibe Configure” environment using provided knowledge. Generate configuration documentation from environment. More on this one later! Data migration Use M365 Copilot and/or Github Copilot to prepare data for data migration and D365 MCP server to push into systems. Testing / Validation Use Github Copilot and D365 MCP server to execute acceptance tests and update status in DevOps.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 11 / 37</div>
+    
+    <h2 class="slide-h2">Frontier Application Consultancy &middot; Approach</h2>
+    <p class="opp-lead">Taking an AI-first approach to Application Consultancy revolves around a data-driven approach using <strong>Clients</strong>, <strong>Tools</strong> and <strong>Knowledge</strong>.</p>
+
+    <div class="lifecycle">
+      <section class="lifecycle-phase">
+        <header class="lifecycle-head">
+          <span class="lifecycle-eyebrow lifecycle-eyebrow-pre">Pre-Sales</span>
+          <span class="lifecycle-stage">Design</span>
+        </header>
+        <ul class="cap-list">
+        <li><span class="cap-name">RFP agent</span><span class="cap-desc">Draft RFP/RFI responses.</span></li>
+        <li><span class="cap-name">Personalized customer demo</span><span class="cap-desc">Based on customer data &amp; public info.</span></li>
+        <li><span class="cap-name">Solution Blueprint</span><span class="cap-desc">Draft, review, evaluate.</span></li>
+        <li><span class="cap-name">Fit gap analysis</span><span class="cap-desc">Match customer processes with the Process Repository.</span></li>
+        </ul>
+      </section>
+      <section class="lifecycle-phase">
+        <header class="lifecycle-head">
+          <span class="lifecycle-eyebrow lifecycle-eyebrow-del">Delivery &middot; Success By Design</span>
+          <span class="lifecycle-stage">Build</span>
+        </header>
+        <ul class="cap-list cap-list-dense">
+        <li><span class="cap-name">Implementation workshops</span><span class="cap-desc">Copilot assisted.</span></li>
+        <li><span class="cap-name">Customer kickoff</span><span class="cap-desc">Includes Copilot training.</span></li>
+        <li><span class="cap-name">Task initiation</span><span class="cap-desc">Populate DevOps from Blueprint.</span></li>
+        <li><span class="cap-name">AI assisted coding</span><span class="cap-desc">Generate FDD, TDD, IDD using workshops &amp; ADO as input.</span></li>
+        <li><span class="cap-name">Configuration documentation</span><span class="cap-desc">Generated from the application.</span></li>
+        <li><span class="cap-name">AI assisted configuration</span><span class="cap-desc">Using knowledge and MCP.</span></li>
+        <li><span class="cap-name">AI assisted testing</span><span class="cap-desc">Using MCP.</span></li>
+        <li><span class="cap-name">Test plan</span><span class="cap-desc">With evals defined.</span></li>
+        <li><span class="cap-name">Ops measurement</span><span class="cap-desc">Agent that measures batch actions and transactions.</span></li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="foundation-strip">
+      <div class="foundation-cell"><span class="foundation-label">Knowledge</span><span class="foundation-val">Work IQ &middot; Fabric IQ &middot; Foundry IQ</span></div>
+      <div class="foundation-cell"><span class="foundation-label">Tools</span><span class="foundation-val">MCP servers</span></div>
+      <div class="foundation-cell"><span class="foundation-label">Clients</span><span class="foundation-val">M365 Copilot &middot; GHCP &middot; Copilot Studio</span></div>
+    </div>
+    <p class="lifecycle-disclaimer">Scenarios are potential use cases, not productized capabilities.</p>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-14" data-label="Bring work context into your apps and agents with Work IQ" data-notes="Let’s focus on Clients and Knowledge For Knowledge, Work IQ is the foundation because it holds all the relevant project data in the form of documentation, reports, meeting recordings and transcripts, etc. Depending on how you work this can be extended by adding additional information sources such as ServiceNow and Jira. This can be unlocked using the right Clients. Depending on your requirement, choose the right client for the job to be done. For maintaining workshop transcripts &amp; decisions that were made and transforming these into project deliverables such as design documents, scenario descriptions, and end user training documentation, M365 Copilot can be used in Office applications and Teams, including the capability to use advanced reasoning AI like Researcher &amp; Analyst. When sourcing this quality data and turning it into runbooks for system configuration, Github Copilot is a better selection because it provides more flexibility around Model selection and MCP server selection.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 12 / 37</div>
+    
+    <h2 class="slide-h2">Bring work context into your apps and agents with Work IQ</h2>
+    <p class="opp-lead">Work IQ stitches productivity data and external systems into a single work-context layer that powers every Copilot surface.</p>
+
+    <div class="workiq-flow">
+      <div class="workiq-tier workiq-tier-sources">
+        <div class="workiq-tier-label">Sources</div>
+        <div class="workiq-source workiq-source-m365">
+          <span class="workiq-source-name">Microsoft 365</span>
+          <span class="workiq-source-sub">Productivity data</span>
+        </div>
+        <div class="workiq-source workiq-source-conn">
+          <span class="workiq-source-name">Copilot Connectors</span>
+          <span class="workiq-source-sub">External systems</span>
+        </div>
+      </div>
+
+      <div class="workiq-arrow workiq-arrow-down" aria-hidden="true">
+        <span class="workiq-arrow-label">Powering</span>
+      </div>
+
+      <div class="workiq-tier workiq-tier-core">
+        <div class="workiq-core">
+          <span class="workiq-core-eyebrow">Work IQ</span>
+          <span class="workiq-core-title">Work context</span>
+          <span class="workiq-core-sub">Reasoning over your work, ready to be queried by any Copilot client.</span>
+        </div>
+      </div>
+
+      <div class="workiq-arrow workiq-arrow-down" aria-hidden="true">
+        <span class="workiq-arrow-label">Powering intelligent experiences</span>
+      </div>
+
+      <div class="workiq-tier workiq-tier-clients">
+        <div class="workiq-client">
+          <span class="workiq-client-name">Microsoft 365 Copilot</span>
+        </div>
+        <div class="workiq-client">
+          <span class="workiq-client-name">VS Code &amp; GitHub Copilot</span>
+        </div>
+        <div class="workiq-client">
+          <span class="workiq-client-name">Custom GenAI Solution</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-15" data-label="MCP standardizes how AI agents discover and use enterprise tools and data" data-notes="Let’s discuss MCP further. MCP is a protocol that standardizes the way your AI apps and agents interact with variety of tools from knowledge bases to productivity tools. For example, MCP enables: - Agents to access your calendar and docs, acting as a more personalized AI assistant. GitHub Copilot to generate an entire web app with features using a Figma design and GitHub Issues. Enterprise chatbots to connect to multiple databases across an organization, empowering users to analyze data using chat. Why does MCP matter? For Frontier Consultancy, MCP server provides that gateway to external systems that previously would need to be accessed manually or through a costly custom interface.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 13 / 37</div>
+    <h2 class="slide-h2">MCP standardizes how AI agents discover and use enterprise tools and data</h2>
+    <div class="structured-body">
+<ul>
+<li>MCP standardizes how AI agents discover and use enterprise tools and data</li>
+<li>Browser automation</li>
+<li>Data and File Stores</li>
+<li>Model ContextProtocol (MCP)</li>
+<li>Code Editors</li>
+<li>Developer ToolsGitHub, Playwright, Azure</li>
+<li>Applications</li>
+<li>Productivity Tools</li>
+<li>M365, Teams</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-16" data-label="Azure DevOps MCP" data-notes="Enable AI assistance with the Azure DevOps MCP Server - Azure Boards | Microsoft Learn CRUD available: azure-devops-mcp/docs/TOOLSET.md at main · microsoft/azure-devops-mcp &quot;This is the BPC-to-ADO bridge consultants have been asking for. Instead of manually creating 50 user stories from a catalogue, you describe the work once and the agent builds the backlog.&quot; Q1: Can I use ADO MCP inside Copilot Studio agents? Yes — but there&#x27;s an important caveat worth knowing upfront: Copilot Studio needs an HTTP/SSE-based remote MCP server — not the local stdio version you run in VS Code Good news: Microsoft just released the Azure DevOps Remote MCP Server in public preview — that&#x27;s exactly the endpoint you connect to The local npx @azure-devops/mcp used in VS Code cannot be directly wired to Copilot Studio or any agent platform outside the IDE 4-step setup to connect: Onboard to the Azure DevOps Remote MCP Server (learn.microsoft.com/azure/devops/mcp-server/remote-mcp-server) In Copilot Studio: Tools → Add a tool → Model Context Protocol Point at the remote ADO MCP endpoint, sign in with your Azure DevOps org credentials Scope with domains (work-items, pipelines…) — keeps the agent focused, avoids tool overload Q2: Can we do mass / bulk upload of user stories from the Business Process Catalog? Yes — three key tools for this: mcp_ado_wit_add_child_work_items — creates multiple child items in one call; e.g. 10 user stories under a Feature, each with title, description, story points &amp; iteration path mcp_ado_wit_update_work_items_batch — bulk update existing items; reassign owners, reprioritise, move to sprint — all in one operation mcp_ado_wit_create_work_item — creates any type (Epic, Feature, Story, Task, Bug) with full field support including Markdown descriptions">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 14 / 37</div>
+    
+    <h2 class="slide-h2">Azure DevOps MCP</h2>
+
+    <div class="qa-panel">
+      <div class="qa-question">Can I use the Azure DevOps MCP within Copilot Studio agents?</div>
+      <div class="qa-answer-grid">
+        <p class="qa-answer">Yes, but with a caveat. Copilot Studio requires an HTTP/SSE-based remote MCP server, not a local stdio one. Microsoft recently released the Azure DevOps Remote MCP Server in public preview. This is exactly what you connect to Copilot Studio.</p>
+        <p class="qa-answer qa-answer-muted">The local <code>npx @azure-devops/mcp</code> version used in VS Code cannot be directly connected to Copilot Studio. Use the remote HTTP/SSE endpoint for all agent platforms outside the IDE.</p>
+      </div>
+      <ol class="qa-steps">
+        <li><span class="qa-step-num">1</span><span>Onboard to the Azure DevOps Remote MCP Server &rarr; <code>learn.microsoft.com/azure/devops/mcp-server/remote-mcp-server</code></span></li>
+        <li><span class="qa-step-num">2</span><span>In Copilot Studio, navigate to <strong>Tools &rarr; Add a tool &rarr; Model Context Protocol</strong></span></li>
+        <li><span class="qa-step-num">3</span><span>Point the agent at the remote ADO MCP endpoint and sign in with your Azure DevOps organization credentials</span></li>
+        <li><span class="qa-step-num">4</span><span>Scope tool access with domains (<code>work-items</code>, <code>pipelines</code>&hellip;) to keep the agent focused and avoid tool overload</span></li>
+      </ol>
+    </div>
+
+    <div class="qa-panel">
+      <div class="qa-question">Can I do mass / bulk upload of user stories &amp; requirements (e.g. based on the Business Process Catalog)?</div>
+      <div class="tool-cards">
+        <div class="tool-card">
+          <code class="tool-card-name">mcp_ado_wit_add_child_work_items</code>
+          <p class="tool-card-desc">Creates multiple child items in one call under a parent work item; e.g. create 10 User Stories under Feature #123, each with title, description, story points &amp; iteration path.</p>
+        </div>
+        <div class="tool-card">
+          <code class="tool-card-name">mcp_ado_wit_update_work_items_batch</code>
+          <p class="tool-card-desc">Updates multiple existing items in batch. Reassign owners, change priority, move to sprint, update state. All in a single operation.</p>
+        </div>
+        <div class="tool-card">
+          <code class="tool-card-name">mcp_ado_wit_create_work_item</code>
+          <p class="tool-card-desc">Creates any work item type (Epic, Feature, Story, Task, Bug) with full field support including Markdown description via the <code>format</code> parameter.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-17" data-label="Empower Project Teams to Reshape DevOps Delivery" data-notes="Opening line: &quot;The Azure DevOps MCP Server does two things: it gives your AI assistant live access to your project data, and it turns that data into insights your team used to spend hours producing manually.&quot; Data Retrieval (left side): This is the input layer — secure, real-time access to what&#x27;s actually happening in ADO: Projects &amp; Teams — org structure, iterations, team membership — instant context on any client environment Work Items — tasks, bugs, stories, epics with states, priorities, blockers Pull Requests — code review status, pending reviewers, change scope Build &amp; Pipelines — CI/CD history, test results, deployment stages, failure diagnostics Test Plans — coverage data, execution results — surface quality risks before client demos AI Analysis (right side): This is the output layer — what the AI does with that data: Sprint &amp; Project Health — instant velocity, burndown &amp; bottleneck summary; ready for a client status call in seconds Risk Identification — stale PRs, flaky pipelines, blocked items flagged before they escalate Context-aware Summaries — standup notes, sprint reviews, handover docs that actually understand your team&#x27;s language and backlog history Actionable Recommendations — not just data dumps; &quot;Follow up with Integration Team on Feature #4423 (blocked 5 days)&quot; — concrete next steps in plain language Closing point: &quot;No more navigating through ADO portals hunting for status. Your AI assistant does that in the background — you show up to the client call already knowing the answers.&quot; ADO Copilot - Home">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 15 / 37</div>
+    
+    <h2 class="slide-h2">Empower Project Teams to Reshape DevOps Delivery</h2>
+    <p class="opp-lead">The Azure DevOps MCP Server enables a two-step process: data retrieval and AI analysis.</p>
+
+    <div class="twocol">
+      <section class="twocol-pane">
+        <header class="twocol-head">
+          <span class="twocol-eyebrow">Data Retrieval Options</span>
+          <p class="twocol-sub">Azure DevOps MCP Server gives your AI assistant secure, real-time access to client project data in Azure DevOps.</p>
+        </header>
+        <ul class="twocol-list">
+          <li>
+            <span class="twocol-list-name">Projects &amp; Teams</span>
+            <span class="twocol-list-desc">Organization structure, team membership, areas &amp; iterations. Instantly understand any client environment.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Work Items</span>
+            <span class="twocol-list-desc">Assigned tasks, bugs, user stories, epics. With states, priorities, blockers &amp; sprint assignments.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Pull Requests</span>
+            <span class="twocol-list-desc">Code review status, pending reviewers, linked work items &amp; change scope (+/&minus; lines).</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Build &amp; Pipelines</span>
+            <span class="twocol-list-desc">CI/CD run history, test results, deployment stages &amp; failure diagnostics.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Test Plans</span>
+            <span class="twocol-list-desc">Test cases, execution results &amp; coverage data. Surface quality risks before client demos.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="twocol-pane">
+        <header class="twocol-head">
+          <span class="twocol-eyebrow twocol-eyebrow-alt">AI Analysis Options</span>
+          <p class="twocol-sub">Your AI assistant processes the retrieved project data to deliver client-ready insights your project team previously spent hours compiling.</p>
+        </header>
+        <ul class="twocol-list">
+          <li>
+            <div class="twocol-list-row">
+              <span class="twocol-list-name">Sprint &amp; Project Health</span>
+              <span class="twocol-tags">
+                <span class="twocol-tag twocol-tag-ok">On Track</span>
+                <span class="twocol-tag twocol-tag-warn">At Risk</span>
+                <span class="twocol-tag twocol-tag-block">Blocked</span>
+              </span>
+            </div>
+            <span class="twocol-list-desc">Instant sprint health summary with velocity, burndown &amp; bottleneck analysis. Ready for client status calls in seconds.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Risk Identification</span>
+            <span class="twocol-list-desc">Surfaces stale PRs, flaky pipelines, blocked work items &amp; incomplete test coverage before they escalate. Proactive risk reporting for every engagement.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Context-aware Summaries</span>
+            <span class="twocol-list-desc">Generates standup notes, sprint reviews &amp; client handover reports that understand your team&rsquo;s terminology, process &amp; backlog history. Cuts context switching.</span>
+          </li>
+          <li>
+            <span class="twocol-list-name">Actionable Recommendations</span>
+            <span class="twocol-list-quote">&ldquo;Follow up with Integration Team on Feature #4423 (blocked 5 days)&rdquo;</span>
+            <span class="twocol-list-desc">Natural language answers that recommend concrete next steps. No more navigating through ADO portals.</span>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-18" data-label="What is Dynamics 365 Agentic CRM?" data-notes="Lets look at the blueprint for agentic CRM It’s built on 3 powerful layers. It starts with adaptive experiences. This isn’t just a new interface; it’s a new interaction model. We are saying goodbye to static forms and clunky navigations. Instead, we are building immersive workspaces, or, when it makes sense, bringing the right data and actions directly into tools people already use, like Teams or Excel. That means less time switching between systems and more time focused on what matters. At the core is the ERP Agent Foundation. This is where Microsoft Copilot Studio meets ERP logic to give agents real business know-how. These agents understand your roles, processes and goals. So they don’t just respond, they act. They are secure, accurate, and operate at scale right out of the box MCP is the orchestration layer that makes Agentic ERP possible. It gives agents a standardized way to interact with Dynamics 365 business logic—securely, consistently, and at scale. This is how we scale innovation—by making ERP open, composable, and agent-ready from the ground up. And underpinning it all are headless business services. They are modular, composable building blocks connected by MCP, so you can use agents to scale launching business models and adapt fast without tearing down what already works. Together, these layers make ERP not just smarter, but fundamentally different.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 16 / 37</div>
+    
+    <h2 class="slide-h2">What is Dynamics 365 Agentic CRM?</h2>
+    <p class="opp-lead">A layered architecture where CRM solutions, headless business services and a CRM agent foundation come together behind one Copilot-driven experience.</p>
+
+    <div class="stack-arch">
+      <div class="stack-layer stack-layer-1">
+        <span class="stack-num">01</span>
+        <div class="stack-body">
+          <span class="stack-title">Copilot adaptive experience</span>
+          <span class="stack-desc">A single conversational surface that reshapes itself for every role and task.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-2">
+        <span class="stack-num">02</span>
+        <div class="stack-body">
+          <span class="stack-title">Extensibility &middot; Industry verticals</span>
+          <span class="stack-desc">Partner-built extensions and vertical accelerators that ride on the same fabric.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-3">
+        <span class="stack-num">03</span>
+        <div class="stack-body">
+          <span class="stack-title">Headless business services</span>
+          <span class="stack-desc">Actions and data tools, powered by the Model Context Protocol (MCP).</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-4">
+        <span class="stack-num">04</span>
+        <div class="stack-body">
+          <span class="stack-title">Dynamics 365 CRM solutions</span>
+          <span class="stack-desc">Sales, Customer Service, Field Service, Marketing and Customer Insights working as one composable suite.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-5">
+        <span class="stack-num">05</span>
+        <div class="stack-body">
+          <span class="stack-title">CRM agent foundation</span>
+          <span class="stack-desc">Shared models, governance and runtime that every CRM agent inherits.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-19" data-label="Dataverse MCP Server Tools" data-notes="These are the Dataverse MCP Server tools.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 17 / 37</div>
+    <h2 class="slide-h2">Dataverse MCP Server Tools</h2>
+    <div class="structured-body">
+<ul>
+<li>DYNAMICS 365  •  DATAVERSE</li>
+<li>SCHEMA TOOLS</li>
+<li>Find entities, get entity metadata, fields, and relationships</li>
+<li>Create / delete entities, fields (all types), option sets, and relationships</li>
+<li>Create alternate keys and many-to-many relationships</li>
+<li>DATA TOOLS</li>
+<li>Execute SQL SELECT queries against</li>
+<li>Dataverse TDS endpoint</li>
+<li>Run INSERT / UPDATE / DELETE SQL</li>
+<li>Commands and manage option set value    mappings</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-20" data-label="CRM MCP Server Tools" data-notes="These are the available CRM Developer MCP Server Tools that can be build">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 18 / 37</div>
+    <div class="slide-aibs slide-mcp-cats"><div class="mcp-cats-eyebrow">DYNAMICS 365 &middot; DATAVERSE</div><h2 class="slide-h2 mcp-cats-title">CRM MCP Server Tools</h2><p class="mcp-cats-sub">Six tool categories that let an agent operate Dynamics 365 customer engagement &amp; Dataverse directly. From schema design to plugins, navigation and process flows.</p><div class="mcp-cat-grid"><div class="mcp-cat-card"><div class="mcp-cat-header">SCHEMA TOOLS</div><ul class="mcp-cat-bullets"><li>Find entities. Get entity metadata, fields and relationships</li><li>Create or delete entities, fields, option sets and relationships</li><li>Create alternate keys and many-to-many relationships</li></ul></div><div class="mcp-cat-card"><div class="mcp-cat-header">DATA TOOLS</div><ul class="mcp-cat-bullets"><li>Execute SQL SELECT against the Dataverse TDS endpoint</li><li>Run INSERT, UPDATE and DELETE in SQL</li><li>Manage option set value mappings</li><li>Bulk import and export records by FetchXML</li></ul></div><div class="mcp-cat-card"><div class="mcp-cat-header">FORM &amp; UI TOOLS</div><ul class="mcp-cat-bullets"><li>Get and create forms. Add or remove tabs and sections</li><li>Add or remove fields, subgrids and web resource controls</li><li>Validate web pages rendered inside model-driven apps</li></ul></div><div class="mcp-cat-card"><div class="mcp-cat-header">APP &amp; NAVI TOOLS</div><ul class="mcp-cat-bullets"><li>List, create and configure App Modules with sitemap</li><li>Add entities and web resources to app navigation</li><li>Create, list and delete ribbon buttons with JS handlers</li><li>Publish web resources (JS, HTML, CSS, SVG, RESX, images)</li></ul></div><div class="mcp-cat-card"><div class="mcp-cat-header">PLUGIN TOOLS</div><ul class="mcp-cat-bullets"><li>Compile, deploy and manage plugin assemblies and packages</li><li>Register or unregister plugin types and pipeline steps</li><li>Add pre-image and post-image to plugin steps</li></ul></div><div class="mcp-cat-card"><div class="mcp-cat-header">PROCESS &amp; API TOOLS</div><ul class="mcp-cat-bullets"><li>Create, update and activate Business Process Flows</li><li>Register Custom APIs with request and response parameters</li><li>Unregister Custom APIs. Execute Dataverse HTTP actions</li></ul></div></div></div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-21" data-label="Custom CRM MCP Server – Build Effort Estimate" data-notes=".NET 8 is Microsoft’s latest platform for building software. It’s basically a toolbox developers use to create apps. With .NET 8, you can build: Websites &amp; web APIs Business applications Cloud services Desktop apps Background services Mobile apps (via MAUI) All with one shared technology stack. HTTP / SSE (Streamable HTTP) wins when: The server must run remotely or in the cloud You need multiple concurrent clients You need browser or web access You want long-lived servers instead of subprocesses Instructions how to build own MCP server: Expose REST API in API Management as MCP server | Microsoft Learn">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 19 / 37</div>
+    
+    <div class="effort-head">
+      <h2 class="slide-h2 effort-h2">Custom CRM MCP Server &ndash; Build Effort Estimate</h2>
+      <span class="effort-stack-tag">DYNAMICS 365 &middot; DATAVERSE &middot; .NET</span>
+    </div>
+
+    <div class="effort-grid">
+      <table class="effort-table">
+        <thead>
+          <tr>
+            <th>Scope</th>
+            <th>Approx. tools</th>
+            <th>Complexity</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td class="effort-scope">Schema tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~6 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-low"></span>Low</td>
+          <td class="effort-notes">Simple Dataverse metadata API calls</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">Data tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~5 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-low"></span>Low</td>
+          <td class="effort-notes">SQL passthrough + Web API proxy calls</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">Form &amp; UI tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~8 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-low"></span>Low</td>
+          <td class="effort-notes">Read/write system form, web resource tables</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">App &amp; Navi tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~6 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-medium"></span>Medium</td>
+          <td class="effort-notes">Sitemap XML manipulation + publishing</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">Plugin tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~6 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-medium"></span>Medium</td>
+          <td class="effort-notes">Assembly upload via base64, step registration</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">Process &amp; API tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~5 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-medium"></span>Medium</td>
+          <td class="effort-notes">BPF workflow activation flow + Custom API reg.</td>
+        </tr>
+        <tr>
+          <td class="effort-scope">Security tools</td>
+          <td class="effort-tools"><span class="effort-tools-pill">~4 tools</span></td>
+          <td class="effort-complexity"><span class="effort-dot effort-dot-low"></span>Low</td>
+          <td class="effort-notes">Role assignment via standard SDK calls</td>
+        </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="effort-total-label">Total</td>
+            <td class="effort-total-tools"><strong>~40</strong> tools</td>
+            <td colspan="2" class="effort-total-meta">across 7 categories &middot; <strong>2&ndash;4 days</strong> with .NET + Dataverse SDK</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <aside class="effort-stack">
+        <div class="effort-stack-eyebrow">Technology Stack</div>
+        <ul class="effort-stack-list">
+          <li>.NET 8 + ModelContextProtocol SDK</li>
+          <li>Microsoft.PowerPlatform.Dataverse.Client</li>
+          <li>Azure AD App Registration (OAuth 2.0)</li>
+          <li>Stdio or HTTP/SSE transport</li>
+          <li>VS Code <code>mcp.json</code> registration</li>
+        </ul>
+      </aside>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-22" data-label="CRM Vibe Configuration Tactics" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 20 / 37</div>
+    <h2 class="slide-h2">CRM Vibe Configuration Tactics</h2>
+    <div class="structured-body">
+<ul>
+<li>Use a copilot-instructions.md file. An example can be found here: Reference workspace files.</li>
+<li>When adding files, use folders to make referencing groups of documents easier.</li>
+<li>Build specialized skills (see below) to do the work. For instance a Dynamics Services Configuration skill.</li>
+<li>Ensure proper security setup to limit the options available in CRM. This decreases the tool options the LLM has to reason over.</li>
+<li>It is possible to use multiple MCP connections at the same time. Great for comparing configurations between legal entitities or environments. Do create separate Workspaces to avoid connection mix ups.</li>
+<li>About agent skills – GitHub Docs</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-23" data-label="What is Dynamics 365 Agentic ERP?" data-notes="Lets look at the blueprint for agentic ERP It’s built on 3 powerful layers. It starts with adaptive experiences. This isn’t just a new interface; it’s a new interaction model. We are saying goodbye to static forms and clunky navigations. Instead, we are building immersive workspaces, or, when it makes sense, bringing the right data and actions directly into tools people already use, like Teams or Excel. That means less time switching between systems and more time focused on what matters. At the core is the ERP Agent Foundation. This is where Microsoft Copilot Studio meets ERP logic to give agents real business know-how. These agents understand your roles, processes and goals. So they don’t just respond, they act. They are secure, accurate, and operate at scale right out of the box MCP is the orchestration layer that makes Agentic ERP possible. It gives agents a standardized way to interact with Dynamics 365 business logic—securely, consistently, and at scale. This is how we scale innovation—by making ERP open, composable, and agent-ready from the ground up. And underpinning it all are headless business services. They are modular, composable building blocks connected by MCP, so you can use agents to scale launching business models and adapt fast without tearing down what already works. Together, these layers make ERP not just smarter, but fundamentally different.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 21 / 37</div>
+    
+    <h2 class="slide-h2">What is Dynamics 365 Agentic ERP?</h2>
+    <p class="opp-lead">A layered architecture where ERP solutions, headless business services and a ERP agent foundation come together behind one Copilot-driven experience.</p>
+
+    <div class="stack-arch">
+      <div class="stack-layer stack-layer-1">
+        <span class="stack-num">01</span>
+        <div class="stack-body">
+          <span class="stack-title">Copilot adaptive experience</span>
+          <span class="stack-desc">A single conversational surface that reshapes itself for every role and task.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-2">
+        <span class="stack-num">02</span>
+        <div class="stack-body">
+          <span class="stack-title">Extensibility &middot; Industry verticals</span>
+          <span class="stack-desc">Partner-built extensions and vertical accelerators that ride on the same fabric.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-3">
+        <span class="stack-num">03</span>
+        <div class="stack-body">
+          <span class="stack-title">Headless business services</span>
+          <span class="stack-desc">Actions and data tools, powered by the Model Context Protocol (MCP).</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-4">
+        <span class="stack-num">04</span>
+        <div class="stack-body">
+          <span class="stack-title">Dynamics 365 ERP solutions</span>
+          <span class="stack-desc">Finance, Supply Chain, Project Operations, Commerce and Human Resources working as one composable suite.</span>
+        </div>
+      </div>
+      <div class="stack-layer stack-layer-5">
+        <span class="stack-num">05</span>
+        <div class="stack-body">
+          <span class="stack-title">ERP agent foundation</span>
+          <span class="stack-desc">Shared models, governance and runtime that every ERP agent inherits.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-24" data-label="Multiple Dynamics 365 ERP MCP servers" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 22 / 37</div>
+    <h2 class="slide-h2">Multiple Dynamics 365 ERP MCP servers</h2>
+    <div class="structured-body">
+<ul>
+<li>ERP Client MCP</li>
+<li>Dataverse MCP</li>
+<li>ERP Analytics MCP</li>
+<li>Work directly with backend data to update tables and validate records at the source</li>
+<li>Act through the UI &amp; Data Entities to trigger business logic and follow standardized processes</li>
+<li>Tap into pre-structured analytical data to uncover insights and measure performance trends</li>
+<ul>
+<li>More tools, smarter agents, better outcomes</li>
+</ul>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-25" data-label="500,000+" data-notes="With MCP we’ve unlocked millions of actions. Every single function a user can do in Dynamics, now an agent can do as well through our MCP server. This is a massive step towards realizing our vision of Agentic ERP and we’re proud to share it with you all today Build agents Vibe config!">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 23 / 37</div>
+    <div class="slide-aibs slide-stat-hero"><div class="stat-eyebrow">ERP MCP SERVER &middot; SCALE</div><div class="stat-headline"><div class="stat-number">500,000<span class="stat-plus">+</span></div><div class="stat-unit">ERP AI actions</div></div><div class="stat-rule" aria-hidden="true"></div><p class="stat-claim">An agent can do almost anything a person can do in ERP.</p><p class="stat-context">Every function a Dynamics 365 user can perform is now exposed to an agent through Microsoft&rsquo;s ERP MCP server. This is the unlock that turns Agentic ERP from a roadmap slide into something that ships.</p></div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-26" data-label="ERP MCP Server Tools" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 24 / 37</div>
+    <h2 class="slide-h2">ERP MCP Server Tools</h2>
+    <div class="structured-body">
+<ul>
+<li>Data tools</li>
+<li>Name format data_*</li>
+<li>Find data entities and get entity meta data. Also custom data entities.</li>
+<li>Perform CRUD operations</li>
+<li>Form tools</li>
+<li>Name format form_*</li>
+<li>Find menu items. Also custom menu items.</li>
+<li>Manipulate forms (open form, sort, filter, perform lookups, select rows, set control values, save, close)</li>
+<li>Action tools</li>
+<li>Name format api_*</li>
+<li>Find and invoke actions</li>
+<li>Can be extended: Create AI plugins for copilots with finance and operations business logic (preview) - Finance &amp; Operations | Dynamics 365 | Microsoft Learn</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-snapshot slide-video" id="slide-27" data-label="CE AI Assisted Configuration" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 25 / 37</div>
+    <h2 class="slide-h2">CE AI Assisted Configuration</h2>
+    
+    <div class="snapshot-frame">
+      <img src="assets/slides/slide-27.png" alt="CE AI Assisted Configuration" loading="lazy" />
+      <div class="video-overlay"><div class="video-overlay-inner"><span class="video-badge"><span class="video-icon">▶</span> Video placeholder</span><p>CE AI-assisted configuration demo. The PPTX shows a screenshot. Replace with a hosted video link before public sync.</p></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-28" data-label="CE AI Assisted Configuration Advised Setup and Cost" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 26 / 37</div>
+    <h2 class="slide-h2">CE AI Assisted Configuration Advised Setup and Cost</h2>
+    <div class="structured-body">
+<ul>
+<li>Setup</li>
+<li>Use VS Code and Github Copilot Pro (or better).</li>
+<li>D365 Premium license, or M365 Copilot license, or Copilot Studio Credits setup (see Running Costs below)</li>
+<li>Install Python library (required when working with Excel files).</li>
+<li>Select a model with good MCP capability. Currently advised are Anthropic models Sonnet &amp; Opus.</li>
+<li>Dataverse MCP Server configuration: Connect to the Dataverse MCP server by using Visual Studio Code</li>
+<li>Allow GitHub Copilot MCP client in your Power Platform environment</li>
+<li>MS Learn MCP Server configuration: Microsoft Learn MCP Server overview</li>
+<li>Running Costs</li>
+<li>For a user working with VS Code + local stdio MCP server + a Dynamics 365 or Power Apps per-user license: The only incremental cost is the GitHub Copilot subscription. The Dataverse API calls are well within the 40k/day entitlement for a normal user.</li>
+<li>Official documentation</li>
+<li>MCP Server Licensing, Copilot Studio licensing, Copilot Studio Billing rates and management</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-snapshot slide-video" id="slide-29" data-label="Slide 29" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 27 / 37</div>
+    <h2 class="slide-h2">Slide 29</h2>
+    
+    <div class="snapshot-frame">
+      <img src="assets/slides/slide-29.png" alt="Slide 29" loading="lazy" />
+      <div class="video-overlay"><div class="video-overlay-inner"><span class="video-badge"><span class="video-icon">▶</span> Video placeholder</span><p>CE AI-assisted configuration demo (~174 MB embedded video). Replace with a hosted video link before public sync.</p></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-30" data-label="F&amp;O AI Assisted Configuration" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 28 / 37</div>
+    <h2 class="slide-h2">F&amp;O AI Assisted Configuration</h2>
+    <div class="structured-body">
+<ul>
+<li>Feature Configuration</li>
+<li>Feature Use (Demo)</li>
+<li>Running Cost</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-snapshot slide-video" id="slide-31" data-label="F&amp;O AI Assisted Configuration Advised Setup and Cost" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 29 / 37</div>
+    <h2 class="slide-h2">F&amp;O AI Assisted Configuration Advised Setup and Cost</h2>
+    
+    <div class="snapshot-frame">
+      <img src="assets/slides/slide-31.png" alt="F&amp;O AI Assisted Configuration Advised Setup and Cost" loading="lazy" />
+      <div class="video-overlay"><div class="video-overlay-inner"><span class="video-badge"><span class="video-icon">▶</span> Video placeholder</span><p>F&amp;O AI-assisted configuration demo. The PPTX shows a screenshot. Replace with a hosted video link before public sync.</p></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-manual-rebuild" id="slide-32" data-label="Zava DIY Warehouse Implementation" data-notes="We are going to do a functional scenario for the AI Assisted configuration. For those not familiar with Dynamics 365 Warehouse Management, this module in D365 Supply Chain Management combines deep, rule‑driven warehouse execution with mobile-first operations and real-time inventory control. It is designed for high-volume, complex warehouses. Part of the configuration is modeling the warehouse layout (sites, warehouses, zones, aisles, locations) and configure how warehouse work is planned and created. We are going to use this example for Zava DIY (Do It Yourself), a fictional home improvement retail company.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 30 / 37</div>
+    <div class="slide-aibs slide-zava"><div class="zava-eyebrow">DEMO SCENARIO &middot; F&amp;O WAREHOUSE</div><h2 class="slide-h2 zava-title">Zava DIY Warehouse Implementation</h2><p class="zava-sub">A simplified warehouse layout used in the F&amp;O AI-assisted configuration demo. Goods flow from <strong>inbound</strong> on the left, through <strong>storage and picking</strong> in the centre, to <strong>outbound</strong> on the right.</p><div class="zava-floor"><div class="zava-flow zava-flow-in"><div class="zava-truck" aria-hidden="true">🚚</div><div class="zava-arrow">→</div><div class="zava-bay zava-bay-reception"><span class="zava-bay-label">Reception</span></div></div><div class="zava-warehouse"><div class="zava-warehouse-cap"><span class="zava-cap-arrow">↕</span><span class="zava-cap-label">Production access</span></div><div class="zava-grid"><div class="zava-grid-row zava-row-back"><div class="zava-cube zava-cube-blue">Z2.1</div><div class="zava-cube zava-cube-blue">Z2.2</div><div class="zava-cube zava-cube-blue">Z2.3</div><span class="zava-row-tag zava-tag-back">Zone group 2</span></div><div class="zava-grid-row zava-row-front"><div class="zava-cube zava-cube-dark">Z1.1</div><div class="zava-cube zava-cube-dark">Z1.2</div><div class="zava-cube zava-cube-dark">Z1.3</div><span class="zava-row-tag zava-tag-front">Zone group 1</span></div></div><div class="zava-warehouse-foot"><span class="zava-foot-pill">Bulk &amp; Picking</span><span class="zava-foot-coords">Rack &middot; Level &middot; Bin</span></div></div><div class="zava-flow zava-flow-out"><div class="zava-bay zava-bay-pick"><span class="zava-bay-label">Picking <small>(fixed locations)</small></span></div><div class="zava-bay zava-bay-pack"><span class="zava-bay-label">Packing</span></div><div class="zava-bay zava-bay-stage"><span class="zava-bay-label">Staging bay</span></div><div class="zava-arrow">→</div><div class="zava-truck" aria-hidden="true">🚚</div></div></div><div class="zava-coords-strip"><div class="zava-coords-title">Bin location coordinates</div><div class="zava-coords-row"><div class="zava-coord"><span class="zava-coord-val">F1</span><span class="zava-coord-name">Aisle</span></div><div class="zava-coord"><span class="zava-coord-val">14</span><span class="zava-coord-name">Row</span></div><div class="zava-coord"><span class="zava-coord-val">2</span><span class="zava-coord-name">Level</span></div><div class="zava-coord"><span class="zava-coord-val">3</span><span class="zava-coord-name">Bin</span></div></div></div></div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-snapshot slide-video" id="slide-33" data-label="Demo video" data-notes="(Total recording time is 5:31) &lt;click when ready&gt; This recorded demo performs the Warehouse Management configuration of Zava DIY. In real life, this complex process can take a long time, so this recording is edited to exclude waiting time. In this demo we use Cloude Sonnet 4.6. The demo has 3 phases: Phase 1 (00:00): Let’s go through the Instructions we provide to get the configuration done In the chat area I’m showing the analysis of the Business Process Catalog files containing process documentation, to illustrate GitHub Copilot has interpreted the Excel files and can use them. Then, let’s review the content of the copilot instructions file. This file provides GitHub Copilot instructions on how to operate, and how to use the MCP server. As mentioned earlier, the ERP MCP server has to ability to use OData entities to perform CRUD operations, and in addition has the capability to trigger the UI to manually perform actions. This is similar to what an RPA (Robotic Process Automation) integration would do. Because of all these possibilities there need to be sound instructions in which circumstances to use which MCP tools. These instructions and how to navigate through the system are included here. Let&#x27;s go to the warehouse management configuration skill. This contains the specific instructions how to configure the warehouse management module of Dynamics 365. This skill will be used to perform the configuration of the WMS module. The functional input comes from two files that are output from our implementation workshop sessions. For context the transcripts from the implementation workshops are added. If you use Copilot in Teams to save transcripts for all sessions, this data can be used during the configuration! The Decision list is a file that contains all decisions, these can be referenced when the runbook is created. Phase 2 (01:57): Create configuration Runbook We enter a prompt that triggers the creation of the runbook that defines all the actions needed to perform the configuration. We are not going to perform the actual configuration now but instead use the runbook as an approval mechanism. When a consultant deems the runbook correct, we can commence the actual configuration in Dynamics 365. The prompt makes GitHub Copilot use the workshop output (the transcript and the decisions file). Github Copilot combines this with the BPC information and the warehouse management configuration skill to create the runbook. When the runbook is created, GitHub Copilot shows a summary of the work that was performed. The runbook is added to the workspace, so we can open and review it. The runbook contains all the actions in the correct order, including the actual data that will be imported. Every data action also is referenced by the decision id and the workshop meeting this was discussed in. This provides maximum context for a consultant to review the data prior to it being imported into Dynamics 365. Phase 3 (04:12): Import configuration data When we are ready to do the actual configuration, we enter a prompt that triggers the creation of the data in Dynamics 365 using the MCP server. With the prompt, we provide the runbook to use for this configuration. In theory, you can have multiple runbooks, for instance one per application module. It might also make sense to create multiple smaller workbooks instead of one large one. GitHub Copilot will start to execute the actions in the instructions. It will trigger the MCP server to insert the data according to the Runbook. Depending on the entities that need to be populated, MCP data tools or form tools will be used. It is advisable to try to use data tools where possible. And providing additional guidance in the runbook helps the configuration actions perform better. The configuration process can take a very long time, depending on the scope, the quality of the instructions you provide, and the performance of your Dynamics 365 environment. The reasoning capability in your model will keep the process on track if it fails, and you might see a few errors while Copilot tries again using different approaches. At the end of the process, which we now edited because of the duration, the configuration is completed as you can see from the checked actions in the runbook, and Zava should be able to use its new warehouse module! PROMPT #1 We are implementing Dynamics 365 ERP with a home improvement retailer named Zava DIY. We have been running implementation workshops, and the resulting meeting transcripts and decision log are stored in the corresponding md files. These are added as attachments. Your task: I want to setup a WHS only warehouse for this company. Do not create the actual configuration in Dynamics, but instead using the skill to create a new runbook named zava_whs_runbook2.md that contains the runbook of the actions to be undertaken, including the configuration data to be stored. For configuration actions, use the Excel sheet data in the BPC reference folder, and use the MS Learn MCP server. For configuration data, use the decision list md and implementation workshop transcript md. Only use files mentioned in your instructions or files added as attachments. Do not use any other files available in the workspace as they could be for different purposes. When creating the runbook, include references to the BPC, the Decision list and the Workshop information so the consultant that will validate the runbook will know where the data originated from. Every action in the runbook should have an empty checkbox so we can at a later state follow progress. PROMPT #2 I just created a new legal entity in D365 named &quot;zav1&quot;. Your task: configure WHS only mode in this legal entity using the runbook provided. Update your progress in the runbook by checking the checkbox when the task is completed.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 31 / 37</div>
+    <h2 class="slide-h2">Demo video</h2>
+    
+    <div class="snapshot-frame">
+      <img src="assets/slides/slide-33.png" alt="Demo video" loading="lazy" />
+      <div class="video-overlay"><div class="video-overlay-inner"><span class="video-badge"><span class="video-icon">▶</span> Video placeholder</span><p>Finance and Operations demo (~153 MB embedded video). Replace with a hosted video link before public sync.</p></div></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-35" data-label="F&amp;O Vibe Configuration Tactics" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 32 / 37</div>
+    <h2 class="slide-h2">F&amp;O Vibe Configuration Tactics</h2>
+    <div class="structured-body">
+<ul>
+<li>Use a copilot-instructions.md file. An example can be found here: Reference workspace files.</li>
+<li>When adding files, use folders to make referencing groups of documents easier.</li>
+<li>Build specialized skills (see below) to do the work. For instance an Accounts Payable Configuration skill.</li>
+<li>Ensure proper security setup to limit the options available in ERP. This decreases the tool options the LLM has to reason over.</li>
+<li>It is possible to use multiple MCP connections at the same time. Great for comparing configurations between legal entitities or environments. Do create separate Workspaces to avoid connection mix ups.</li>
+<li>About agent skills – GitHub Docs</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-section-divider" id="slide-36" data-label="Responsible AI" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 33 / 37</div>
+    <div class="section-divider-inner">
+      <div class="section-divider-rule" aria-hidden="true"></div>
+      <h2 class="section-divider-title">Responsible AI</h2>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-37" data-label="Design responsible user experiences" data-notes="Now we’re at the user experience level—the last mile of our app! At Microsoft, we have a lot of different UX learnings about how to be transparent about what the system does and its limitations, how to ensure that the user stay in the loop, And how to make sure that we&#x27;re mitigating people over-relying on it or misusing it. Your UX and marketing teams have a huge impact on how your AI products will be understood and used by end users.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 34 / 37</div>
+    <h2 class="slide-h2">Design responsible user experiences</h2>
+    <div class="structured-body">
+<ul>
+<li>Be transparent about AI’s roles and limitations, e.g. highlight potential mistakes and disclose AI’s role</li>
+<li>Ensure humans stay in the loop, e.g. encourage human intervention and restrict automatic posts to social media</li>
+<li>Mitigate misuse and overreliance, e.g. provide data citations and prepare pre-determined responses</li>
+<li>Provide documentation, user guidelines, and best practices</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured" id="slide-38" data-label="Evaluation is an ongoing, iterative process" data-notes="Essentially, all we’re doing is we’re providing our model or application – whatever we’re evaluating– with a set of test prompts. We’ll use those test prompts to generate responses, and then we’ll look closely at those responses to see if they align with our expectations. This is going to help our developers and data scientists understand the baseline level of risk – and perform targeted mitigations to address those risks. Once the learnings are applied, we’ll repeat the measurements to test how effective we were.">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 35 / 37</div>
+    <h2 class="slide-h2">Evaluation is an ongoing, iterative process</h2>
+    <div class="structured-body">
+<ul>
+<li>Provide inputs (prompts)</li>
+<li>Generate outputs (completions)</li>
+<li>Learnings</li>
+<li>Evaluate outputs</li>
+<li>Metrics</li>
+</ul>
+</div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-section-divider" id="slide-39" data-label="Next steps" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 36 / 37</div>
+    <div class="section-divider-inner">
+      <div class="section-divider-rule" aria-hidden="true"></div>
+      <h2 class="section-divider-title">Next steps</h2>
+    </div>
+  </div>
+</section>
+
+<section class="slide slide-aibs slide-structured slide-section-divider" id="slide-40" data-label="Closing" data-notes="">
+  <div class="slide-inner structured-inner">
+    <div class="part-label">SLIDE 37 / 37</div>
+    <div class="section-divider-inner">
+      <div class="section-divider-rule" aria-hidden="true"></div>
+      <h2 class="section-divider-title">Closing</h2>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /#deck -->
+
+<script>
+
+/* ── Mode detection ──
+?presenter=notes → dark presenter UI (this window)
+?presenter=thumb → silent thumbnail (used as iframe inside presenter)
+ (no param) → normal deck
+*/
+const mode = (new URLSearchParams(location.search).get('presenter') || 'deck');
+if (mode === 'notes') document.body.classList.add('mode-presenter');
+if (mode === 'thumb') document.body.classList.add('mode-thumb');
+
+/* ── Presenter notes mode ── */
+if (mode === 'notes') {
+ const pvThumb = document.getElementById('pvThumb');
+ const pvLabel = document.getElementById('pvLabel');
+ const pvNum = document.getElementById('pvNum');
+ const pvTotal = document.getElementById('pvTotal');
+ const pvDo = document.getElementById('pvDo');
+ const pvSay = document.getElementById('pvSay');
+ pvThumb.src = location.pathname + '?presenter=thumb';
+ let thumbReady = false;
+ let lastIndex = -1;
+ pvThumb.onload = () => { thumbReady = true; };
+
+ const channel = new BroadcastChannel('presenter-sync');
+ function parseNotes(raw) {
+ let doText = '', sayText = raw;
+ const doMatch = raw.match(/^DO:\s*(.*?)\s*SAY:\s*/i);
+ if (doMatch) { doText = doMatch[1].trim(); sayText = raw.substring(doMatch[0].length).trim(); }
+ else { const sayMatch = raw.match(/^SAY:\s*/i); if (sayMatch) sayText = raw.substring(sayMatch[0].length).trim(); }
+ return { doText, sayText };
+ }
+ channel.onmessage = (e) => {
+ if (e.data.type!== 'slide-change') return;
+ const { index, total, label, notes } = e.data;
+ if (index === lastIndex) return;
+ lastIndex = index;
+ pvLabel.textContent = label;
+ pvNum.textContent = index + 1;
+ pvTotal.textContent = total;
+ if (thumbReady) pvThumb.contentWindow.postMessage({ type: 'scroll-to-slide', index }, '*');
+ const { doText, sayText } = parseNotes(notes || '');
+ pvSay.style.opacity = '0'; pvDo.style.opacity = '0';
+ setTimeout(() => {
+ if (doText) { pvDo.textContent = doText; pvDo.style.display = 'block'; pvDo.style.opacity = '1'; }
+ else pvDo.style.display = 'none';
+ pvSay.textContent = sayText || '(No notes for this slide)';
+ pvSay.style.opacity = '1';
+ }, 150);
+ };
+ channel.postMessage({ type: 'request-current' });
+
+ // Reverse nav: notes window controls the deck via the same channel
+ document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  let action = null;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') action = 'next';
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') action = 'prev';
+  else if (e.key === 'Home') action = 'first';
+  else if (e.key === 'End') action = 'last';
+  if (action) { e.preventDefault(); channel.postMessage({ type: 'nav', action }); }
+ });
+}
+/* ── Deck modes (deck + thumb) share the navigation runtime ── */
+else {
+const deck=document.getElementById('deck'),slides=[...document.querySelectorAll('.slide')],progress=document.getElementById('progress'),counter=document.getElementById('counter'),nav=document.getElementById('nav'),chaptersEl=document.getElementById('chapters'),total=slides.length;
+
+/* ── Chapter map: audience-facing section labels ── */
+const chapters=[
+ {label:'Intro', ids:['slide-01','slide-02','slide-03','slide-04','slide-05','slide-06']},
+ {label:'Approach', ids:['slide-07','slide-08','slide-09','slide-10','slide-11','slide-12','slide-13','slide-14','slide-15','slide-16','slide-17','slide-18','slide-19','slide-20','slide-21','slide-22','slide-23','slide-24','slide-25','slide-26','slide-27','slide-28','slide-29','slide-30','slide-31','slide-32']},
+ {label:'Trust', ids:['slide-33','slide-34','slide-35']},
+ {label:'Next Steps', ids:['slide-36']},
+ {label:'Closing', ids:['slide-37']}
+];
+const slideChapter=slides.map(s=>{const id=s.id;return chapters.findIndex(ch=>ch.ids.includes(id));});
+chapters.forEach((ch,i)=>{
+ const b=document.createElement('button');
+ b.className='chapter-pill'+(i===0?' active':'');
+ b.textContent=ch.label;
+ b.addEventListener('click',()=>{
+ const target=document.getElementById(ch.ids[0]);
+ if(target) target.scrollIntoView({behavior:'smooth'});
+ });
+ chaptersEl.appendChild(b);
+});
+const pills=[...document.querySelectorAll('.chapter-pill')];
+
+slides.forEach((s,i)=>{
+ const d=document.createElement('button');
+ d.className='nav-dot'+(i===0?' active':'');
+ d.dataset.label=s.dataset.label||`Slide ${i+1}`;
+ if(i>0 && slideChapter[i]!==slideChapter[i-1]) d.classList.add('chapter-start');
+ d.addEventListener('click',()=>slides[i].scrollIntoView({behavior:'smooth'}));
+ nav.appendChild(d);
+});
+const dots=[...document.querySelectorAll('.nav-dot')];
+
+const revealObs=new IntersectionObserver(e=>{
+ e.forEach(el=>{if(el.isIntersecting)el.target.classList.add('visible');});
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+let activeIndex=0;
+let broadcastSlide=function(){};
+const slideObs=new IntersectionObserver(e=>{
+ e.forEach(el=>{
+ if(el.isIntersecting&&el.intersectionRatio>.5){
+ const idx=slides.indexOf(el.target);
+ if(idx!==-1){
+ activeIndex=idx;
+ broadcastSlide(idx);
+ dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+ const chIdx=slideChapter[idx];
+ pills.forEach((p,i)=>p.classList.toggle('active',i===chIdx));
+ counter.innerHTML=`<span>${idx+1}</span> / ${total}`;
+ progress.style.width=`${((idx+1)/total)*100}%`;
+ const headerLink=document.getElementById('header-link');
+ if(headerLink) headerLink.classList.toggle('visible',idx>0);
+ }
+ }
+ });
+},{threshold:.5});
+slides.forEach(s=>slideObs.observe(s));
+
+// Keyboard navigation
+let demoReturnIndex=null;
+const demoSlideEl=document.getElementById('squad-appendix');
+const demoSlideIndex=demoSlideEl?Array.from(slides).indexOf(demoSlideEl):-1;
+document.addEventListener('keydown',e=>{
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.target&&e.target.matches&&e.target.matches('input,textarea,[contenteditable]'))return;
+ if(e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){
+ e.preventDefault();
+ slides[Math.min(activeIndex+1,total-1)].scrollIntoView({behavior:'smooth'});
+ }else if(e.key==='ArrowUp'||e.key==='PageUp'){
+ e.preventDefault();
+ slides[Math.max(activeIndex-1,0)].scrollIntoView({behavior:'smooth'});
+ }else if(e.key==='Home'){e.preventDefault();slides[0].scrollIntoView({behavior:'smooth'});}
+ else if(e.key==='End'){e.preventDefault();slides[total-1].scrollIntoView({behavior:'smooth'});}
+ else if((e.key==='d'||e.key==='D')&&demoSlideIndex>=0&&activeIndex!==demoSlideIndex){
+ e.preventDefault();
+ demoReturnIndex=activeIndex;
+ slides[demoSlideIndex].scrollIntoView({behavior:'smooth'});
+ }else if((e.key==='b'||e.key==='B')&&demoReturnIndex!==null&&activeIndex===demoSlideIndex){
+ e.preventDefault();
+ const back=demoReturnIndex;demoReturnIndex=null;
+ slides[back].scrollIntoView({behavior:'smooth'});
+ }
+});
+
+// ── Deck mode only: broadcast + P-to-open-presenter ──
+if (mode === 'deck') {
+ const presenterChannel = new BroadcastChannel('presenter-sync');
+ broadcastSlide = function(idx) {
+ const slide = slides[idx];
+ const notes = slide? slide.getAttribute('data-notes') || '': '';
+ const label = slide? slide.getAttribute('data-label') || ('Slide '+(idx+1)): '';
+ presenterChannel.postMessage({ type:'slide-change', index:idx, total, label, notes });
+ };
+ document.addEventListener('keydown', e => {
+ if ((e.key === 'p' || e.key === 'P') &&!e.ctrlKey &&!e.metaKey) {
+ window.open(location.pathname + '?presenter=notes', 'presenter', 'width=1100,height=600');
+ setTimeout(() => broadcastSlide(activeIndex), 500);
+ }
+ });
+ presenterChannel.onmessage = (e) => {
+ if (e.data.type === 'request-current') broadcastSlide(activeIndex);
+ else if (e.data.type === 'nav') handlePresenterNav(e.data.action);
+ };
+ function handlePresenterNav(action) {
+  const target = (
+   action === 'next'  ? slides[Math.min(activeIndex + 1, total - 1)] :
+   action === 'prev'  ? slides[Math.max(activeIndex - 1, 0)] :
+   action === 'first' ? slides[0] :
+   action === 'last'  ? slides[total - 1] : null
+  );
+  if (target) target.scrollIntoView({ behavior: 'smooth' });
+ }
+}
+// ── Thumbnail mode: respond to scroll commands from the presenter iframe parent ──
+else if (mode === 'thumb') {
+ window.addEventListener('message', (e) => {
+ if (e.data && e.data.type === 'scroll-to-slide' && typeof e.data.index === 'number') {
+ if (slides[e.data.index]) slides[e.data.index].scrollIntoView({ behavior: 'instant' });
+ }
+ });
+ // Forward keydown from inside the thumb iframe up to the deck via the same channel
+ // (so notes window arrow keys still work when focus is inside the iframe)
+ const thumbChannel = new BroadcastChannel('presenter-sync');
+ document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  let action = null;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') action = 'next';
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') action = 'prev';
+  else if (e.key === 'Home') action = 'first';
+  else if (e.key === 'End') action = 'last';
+  if (action) thumbChannel.postMessage({ type: 'nav', action });
+ });
+}
+}
+
+</script>
+</body>
+</html>

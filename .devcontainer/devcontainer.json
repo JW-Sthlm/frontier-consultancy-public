@@ -1,0 +1,22 @@
+{
+  "name": "Frontier Consultancy CAIP exercise",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "onCreateCommand": "npm install -g @github/copilot",
+  "remoteUser": "node",
+  "workspaceFolder": "/workspaces/frontier-consultancy-public/caip/exercise",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "workbench.startupEditor": "none"
+      }
+    }
+  }
+}

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontier Consultancy · Workshops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a;
+  --bg-card:rgba(255,255,255,.03);
+  --bg-elevated:rgba(255,255,255,.05);
+  --fg:#f0f1f3;
+  --fg-soft:rgba(240,241,243,.78);
+  --fg-weak:rgba(240,241,243,.55);
+  --fg-faint:rgba(240,241,243,.35);
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.14);
+  --aurora-cyan:#22d3ee;
+  --aurora-purple:#a78bfa;
+  --aurora-pink:#f472b6;
+  --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+  --status-live:#34d399;
+  --status-review:#fbbf24;
+  --status-future:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.55;min-height:100vh;
+  overflow-x:hidden;position:relative;
+}
+body::before,body::after{
+  content:'';position:fixed;width:55vw;height:55vw;border-radius:50%;
+  filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+}
+body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+main{position:relative;z-index:1}
+.container{max-width:1180px;margin:0 auto;padding:0 clamp(24px,5vw,56px)}
+
+.topnav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px clamp(24px,5vw,56px);max-width:1180px;margin:0 auto;position:relative;z-index:2;
+}
+.topnav-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.01em}
+.topnav-brand span{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.topnav-tag{
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--fg-weak);
+}
+
+.hero{padding-top:72px;padding-bottom:48px}
+.eyebrow{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--fg-weak);margin-bottom:20px;
+}
+.hero h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(40px,5.5vw,72px);
+  line-height:.98;font-weight:900;letter-spacing:-.035em;
+  text-wrap:balance;max-width:16ch;margin-bottom:24px;
+}
+.hero h1 .accent{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero .lead{font-size:21px;line-height:1.55;max-width:60ch;color:var(--fg-soft);text-wrap:pretty}
+
+.section{padding-top:48px;padding-bottom:48px}
+.section-eyebrow{
+  font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--fg-weak);margin-bottom:14px;
+}
+.section h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(30px,3.2vw,44px);
+  line-height:1.15;font-weight:800;letter-spacing:-.015em;
+  text-wrap:balance;margin-bottom:14px;
+}
+.section-lead{font-size:17px;color:var(--fg-soft);max-width:62ch;text-wrap:pretty}
+
+.track-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:24px;margin-top:36px;
+}
+.track-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;padding:32px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:border-color .2s, transform .2s;
+}
+.track-card:hover{border-color:var(--line-strong)}
+.track-card.live::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  padding:1px;background:var(--aurora);
+  -webkit-mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;opacity:.6;
+}
+.track-card.future{opacity:.7}
+.track-status{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid var(--line);
+  margin-bottom:20px;align-self:flex-start;
+}
+.track-status .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.track-status.live .dot{background:var(--status-live);box-shadow:0 0 12px var(--status-live)}
+.track-status.draft .dot{background:var(--status-review);box-shadow:0 0 12px var(--status-review)}
+.track-status.future .dot{background:var(--status-future)}
+.track-status.live{color:var(--status-live)}
+.track-status.draft{color:var(--status-review)}
+.track-status.future{color:var(--fg-weak)}
+
+.track-card h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.02em;
+  margin-bottom:6px;
+}
+.track-audience{font-size:13px;color:var(--fg-weak);font-weight:500;margin-bottom:18px}
+.track-desc{
+  font-size:15px;color:var(--fg-soft);line-height:1.55;
+  text-wrap:pretty;margin-bottom:24px;flex:1;
+}
+.track-actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 18px;border-radius:10px;
+  font-size:14px;font-weight:600;
+  text-decoration:none;transition:all .15s;
+  border:1px solid var(--line-strong);white-space:nowrap;
+}
+.btn-primary{background:var(--aurora);color:#0a0a0c;border-color:transparent}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(167,139,250,.25)}
+.btn-secondary{background:var(--bg-elevated);color:var(--fg)}
+.btn-secondary:hover{background:rgba(255,255,255,.08);border-color:var(--fg-weak)}
+.btn-disabled{
+  background:transparent;color:var(--fg-faint);
+  border-color:var(--line);cursor:not-allowed;
+}
+
+.material-block{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:36px 40px;margin-top:24px;
+  display:grid;grid-template-columns:1fr auto;
+  gap:32px;align-items:center;
+}
+.material-block-text h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:22px;font-weight:800;letter-spacing:-.015em;margin-bottom:8px;
+}
+.material-block-text p{font-size:15px;color:var(--fg-soft);line-height:1.55}
+.code{
+  display:inline-block;background:rgba(0,0,0,.4);
+  border:1px solid var(--line-strong);border-radius:10px;
+  padding:14px 18px;
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:13px;color:var(--fg);white-space:nowrap;
+}
+
+footer{border-top:1px solid var(--line);padding:32px 0;margin-top:64px}
+
+.leads-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:18px;margin-top:36px;
+}
+.lead-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:24px 22px 22px;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.lead-avatar{
+  width:80px;height:80px;border-radius:50%;
+  overflow:hidden;margin-bottom:14px;
+  background:var(--bg-elevated);
+  display:flex;align-items:center;justify-content:center;
+}
+.lead-avatar img{width:100%;height:100%;object-fit:cover}
+.lead-name{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:18px;font-weight:800;letter-spacing:-.01em;
+  margin-bottom:2px;
+}
+.lead-role{font-size:13px;color:var(--fg-weak);line-height:1.4;margin-bottom:8px}
+.lead-track{
+  font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--aurora-purple);margin-bottom:16px;
+}
+.lead-links{
+  margin-top:auto;display:flex;flex-direction:column;gap:6px;width:100%;
+}
+.lead-mail,.lead-linkedin{
+  font-size:13px;color:var(--fg-soft);text-decoration:none;
+  border-bottom:1px solid var(--line);padding-bottom:3px;
+  word-break:break-all;
+}
+.lead-mail:hover,.lead-linkedin:hover{color:var(--fg);border-color:var(--fg-soft)}
+.lead-linkedin{
+  font-size:12px;color:var(--fg-weak);letter-spacing:.02em;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.lead-linkedin svg{width:13px;height:13px;flex-shrink:0;fill:currentColor}
+
+@media (max-width:980px){
+  .leads-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+}
+@media (max-width:520px){
+  .leads-grid{grid-template-columns:1fr}
+}
+footer .container{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;font-size:13px;color:var(--fg-weak);
+}
+footer a{color:var(--fg-soft);text-decoration:none}
+footer a:hover{color:var(--fg)}
+
+@media (max-width:720px){
+  .container,.topnav{padding-left:20px;padding-right:20px}
+  .hero{padding:48px 0 32px}
+  .material-block{grid-template-columns:1fr}
+  .code{white-space:normal;word-break:break-all}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand">Frontier <span>Consultancy</span></div>
+  <div class="topnav-tag">Partner Workshops</div>
+</nav>
+
+<main>
+<section class="container hero">
+  <div class="eyebrow">Workshops · pick your track</div>
+  <h1>Build your <span class="accent">AI-first delivery</span> practice.</h1>
+  <p class="lead">Hands-on workshops for partners building AI-first delivery practice with Microsoft. Each track is self-contained: deck, scenario, exercise, and a curated set of skills, agents, and MCP servers you walk away with.</p>
+</section>
+
+<section class="container section" id="why">
+  <div class="section-eyebrow">Why this exists</div>
+  <h2>Partner delivery is changing fast.</h2>
+  <p class="section-lead" style="max-width:68ch">Agents and MCP-connected tools are starting to handle the parts of delivery that used to eat consultant hours: backlog grooming, scaffolding, infrastructure, test, the admin around every project. The partners building this motion now have a real window to differentiate. Frontier Consultancy is the program that helps you get there, with track-specific content tuned to the Microsoft platform you deliver on.</p>
+</section>
+
+<section class="container section" id="tracks">
+  <div class="section-eyebrow">Tracks</div>
+  <h2>Pick the workshop that matches your delivery.</h2>
+  <p class="section-lead">Each track has its own landing page with the deck, the exercise, setup tiers, and a clone-once material drop. Click through to the one your team is running.</p>
+
+  <div class="track-grid">
+
+    <article class="track-card live">
+      <div class="track-status live"><span class="dot"></span>Live</div>
+      <h3>Cloud and AI Platform</h3>
+      <div class="track-audience">CAIP · Azure partners</div>
+      <p class="track-desc">For Azure delivery teams. Build AI-first delivery muscle on Cloud and AI Platform. Deck, scenario, three setup tiers, exercise. 60 to 90 minutes plus optional hands-on.</p>
+      <div class="track-actions">
+        <a class="btn btn-primary" href="../caip/">Open CAIP track</a>
+      </div>
+    </article>
+
+    <article class="track-card">
+      <div class="track-status live"><span class="dot"></span>Live</div>
+      <h3>AI Business Solutions</h3>
+      <div class="track-audience">AIBS · Dynamics partners</div>
+      <p class="track-desc">For Dynamics delivery teams. AI-first delivery for Dynamics 365: CRM and ERP MCP servers, Copilot Studio, vibe configuration, Zava demo. Pilot deliveries running with EMEA partners.</p>
+      <div class="track-actions">
+        <a class="btn btn-primary" href="../aibs/">Open AIBS track</a>
+      </div>
+    </article>
+
+    <article class="track-card future">
+      <div class="track-status future"><span class="dot"></span>Future</div>
+      <h3>Security</h3>
+      <div class="track-audience">Defender, Sentinel, posture</div>
+      <p class="track-desc">Security track is being shaped now. Audience, scenario, and exercise scope in design. Reach out to Johan to weigh in.</p>
+      <div class="track-actions">
+        <a class="btn btn-secondary" href="../security/">Open placeholder</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="container section" id="one-pager">
+  <div class="section-eyebrow">One-pager</div>
+  <h2>Want a shareable summary?</h2>
+  <p class="section-lead">A one-page overview of Frontier Consultancy. Good for forwarding to colleagues, printing for a kickoff, or attaching to a pitch.</p>
+
+  <div class="material-block">
+    <div class="material-block-text">
+      <h3>Frontier Consultancy · partner one-pager</h3>
+      <p>The full motion on one page. Tracks, what partners get, who it's for, who runs it.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="../partner-overview/">View online</a>
+      <a class="btn btn-secondary" href="../partner-overview/one-pager.pdf">Download PDF</a>
+    </div>
+  </div>
+</section>
+
+<section class="container section" id="business-side">
+  <div class="section-eyebrow">For the business side</div>
+  <h2>If you sell, manage, or market the work.</h2>
+  <p class="section-lead">The Frontier tracks above are built for the people who deliver. The sister course below is built for the people who win the work, run the relationship, and shape the narrative. Account managers, sellers, delivery managers, marketing, business development, engagement managers. No coding required.</p>
+
+  <div class="material-block">
+    <div class="material-block-text">
+      <h3>AI Operator: Copilot CLI for partner work</h3>
+      <p>A short, self-paced intro to Copilot CLI for the business side of partner work. Four lessons, three exercises, plus a CAIP deal-shaping track exercise that pairs with the workshop above. Public.</p>
+    </div>
+    <a class="btn btn-primary" href="https://jw-sthlm.github.io/ai-operator-intro/">Open AI Operator</a>
+  </div>
+</section>
+
+<section class="container section" id="material">
+  <div class="section-eyebrow">Get the material</div>
+  <h2>Clone once. Keep it after.</h2>
+  <p class="section-lead">Each track ships a clean material drop. Setup guides, scenario brief, deliverable templates, FAQ. Cloned to your machine, yours after the session.</p>
+
+  <div class="material-block">
+    <div class="material-block-text">
+      <h3>Clone the public repo</h3>
+      <p>Clone for the full set of tracks, or download a zip from the Code button on GitHub.</p>
+    </div>
+    <code class="code">git clone https://github.com/JW-Sthlm/frontier-consultancy-public.git</code>
+  </div>
+</section>
+
+<section class="container section" id="contact">
+  <div class="section-eyebrow">Contact</div>
+  <h2>Reach the track leads.</h2>
+  <p class="section-lead">EMEA Solution Architects behind Frontier. Send a partner name, a question, or a hand raised to join. Direct mail works. For program-level questions across all tracks, reach Johan.</p>
+
+  <div class="leads-grid">
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="../photos/johan.jpg" alt="Johan Wallquist"/></div>
+      <div class="lead-name">Johan Wallquist</div>
+      <div class="lead-role">Partner Solution Architect</div>
+      <div class="lead-track">CAIP track</div>
+      <div class="lead-links">
+        <a class="lead-mail" href="mailto:jwallquist@microsoft.com">jwallquist@microsoft.com</a>
+        <a class="lead-linkedin" href="https://www.linkedin.com/in/johanwallquist/" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.86-3.04-1.86 0-2.14 1.45-2.14 2.95v5.66H9.36V9h3.4v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 11-.01-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .78 0 1.74v20.52C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.74V1.74C24 .78 23.2 0 22.22 0z"/></svg>LinkedIn</a>
+      </div>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="../photos/giel.jpg" alt="Giel Cuijpers"/></div>
+      <div class="lead-name">Giel Cuijpers</div>
+      <div class="lead-role">Sr Partner Solution Architect</div>
+      <div class="lead-track">AIBS track</div>
+      <div class="lead-links">
+        <a class="lead-mail" href="mailto:gielcuijpers@microsoft.com">gielcuijpers@microsoft.com</a>
+      </div>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="../photos/marvin.jpg" alt="Marvin Heilemann"/></div>
+      <div class="lead-name">Marvin Heilemann</div>
+      <div class="lead-role">Cloud Solution Architect</div>
+      <div class="lead-track">AIBS track</div>
+      <div class="lead-links">
+        <a class="lead-mail" href="mailto:Marvin.Heilemann@microsoft.com">Marvin.Heilemann@microsoft.com</a>
+      </div>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="../photos/madalina.jpg" alt="Madalina Dobre"/></div>
+      <div class="lead-name">Madalina Dobre</div>
+      <div class="lead-role">Sr Partner Solution Architect</div>
+      <div class="lead-track">Security track</div>
+      <div class="lead-links">
+        <a class="lead-mail" href="mailto:Madalina.Dobre@microsoft.com">Madalina.Dobre@microsoft.com</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div>Partner workshop content. Microsoft. Use within your partner organization.</div>
+    <div><a href="https://github.com/JW-Sthlm/frontier-consultancy-public">View on GitHub</a></div>
+  </div>
+</footer>
+
+<script>
+// Local-preview link rewriter. See shared/landing/index.html for the rationale.
+// Active only under file:// — rewrites published-style hrefs to on-disk paths.
+(function () {
+  if (location.protocol !== 'file:') return;
+  var map = {
+    '../caip/':     '../../tracks/caip/',
+    '../aibs/':     '../../tracks/aibs/',
+    '../security/': '../../tracks/security/landing/index.html'
+  };
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    var raw = a.getAttribute('href');
+    if (map.hasOwnProperty(raw)) a.setAttribute('href', map[raw]);
+  });
+  var banner = document.createElement('div');
+  banner.textContent = 'Local preview mode: links rewritten to on-disk paths.';
+  banner.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:99;font:500 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:rgba(240,241,243,.55);background:rgba(7,8,10,.7);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 10px;backdrop-filter:blur(8px)';
+  document.body.appendChild(banner);
+})();
+</script>
+
+</body>
+</html>

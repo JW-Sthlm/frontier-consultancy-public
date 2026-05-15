@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding Test Deck · Frontier Consultancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a;
+  --fg:#f0f1f3;
+  --fg-soft:rgba(240,241,243,.78);
+  --fg-weak:rgba(240,241,243,.55);
+  --line:rgba(255,255,255,.08);
+  --aurora-cyan:#22d3ee;
+  --aurora-purple:#a78bfa;
+  --aurora-pink:#f472b6;
+  --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.55;overflow-x:hidden;
+  scroll-snap-type:y mandatory;overflow-y:scroll;
+}
+body::before,body::after{
+  content:'';position:fixed;width:55vw;height:55vw;border-radius:50%;
+  filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+}
+body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+
+.slide{
+  min-height:100vh;scroll-snap-align:start;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(40px,8vh,90px) clamp(24px,5vw,72px);
+  position:relative;z-index:1;
+  max-width:1180px;margin:0 auto;
+}
+.eyebrow{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--fg-weak);margin-bottom:24px;
+}
+h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(48px,7vw,96px);
+  line-height:0.98;font-weight:900;letter-spacing:-.035em;
+  text-wrap:balance;max-width:18ch;margin-bottom:28px;
+}
+h1 .accent{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(36px,4.5vw,60px);
+  line-height:1.05;font-weight:800;letter-spacing:-.025em;
+  text-wrap:balance;margin-bottom:24px;
+}
+.lead{
+  font-size:clamp(18px,2vw,22px);line-height:1.55;
+  max-width:60ch;color:var(--fg-soft);text-wrap:pretty;margin-bottom:18px;
+}
+.your-name{
+  display:inline-block;
+  background:linear-gradient(135deg,rgba(244,114,182,.18),rgba(167,139,250,.18));
+  border:1px dashed rgba(244,114,182,.5);
+  padding:2px 10px;border-radius:6px;
+  color:var(--aurora-pink);font-weight:600;letter-spacing:.01em;
+}
+.slide-counter{
+  position:fixed;bottom:24px;right:24px;
+  font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--fg-weak);z-index:2;
+}
+.cta{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 22px;border-radius:10px;
+  background:var(--aurora);color:#0a0a0c;
+  font-weight:700;font-size:14px;
+  text-decoration:none;margin-top:14px;
+}
+.cta:hover{transform:translateY(-1px)}
+ul.steps{list-style:none;padding:0;margin-top:18px}
+ul.steps li{
+  font-size:17px;color:var(--fg-soft);line-height:1.7;
+  padding-left:32px;position:relative;margin-bottom:10px;
+}
+ul.steps li::before{
+  content:counter(step);counter-increment:step;
+  position:absolute;left:0;top:0;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(167,139,250,.18);color:var(--aurora-purple);
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+ul.steps{counter-reset:step}
+code.inline{
+  background:rgba(0,0,0,.4);padding:2px 8px;border-radius:6px;
+  font-family:'JetBrains Mono',Consolas,monospace;font-size:.85em;
+}
+</style>
+</head>
+<body>
+
+<section class="slide">
+  <div class="eyebrow">Onboarding · Test Deck</div>
+  <h1>Frontier Consultancy <span class="accent">Onboarding Test Deck.</span></h1>
+  <p class="lead">A practice deck for new collaborators. Three slides. Used in the onboarding walkthrough as a target for your first edit, commit, and push.</p>
+  <p class="lead" style="font-size:15px;color:var(--fg-weak)">If you found this and you are not a new collaborator, you are probably lost. The actual partner content lives at <a href="https://jw-sthlm.github.io/frontier-consultancy-public/partners/" style="color:var(--aurora-cyan)">/partners/</a>.</p>
+  <div class="slide-counter">Slide 1 of 3 · scroll down</div>
+</section>
+
+<section class="slide">
+  <div class="eyebrow">Your turn</div>
+  <h2>Make your first edit here.</h2>
+  <p class="lead">The onboarding walkthrough will ask you to change the placeholder below to your own name. Then commit, push, and run the public sync. When this slide says your name instead of the placeholder, the loop is complete.</p>
+  <p class="lead">Edited by: <span class="your-name">YOUR NAME HERE</span></p>
+  <p class="lead" style="font-size:15px">The file is <code class="inline">shared/onboarding/test-deck/index.html</code> in the private repo. Open it in VS Code Live Preview or Edge to see what you are editing.</p>
+  <div class="slide-counter">Slide 2 of 3 · scroll down</div>
+</section>
+
+<section class="slide">
+  <div class="eyebrow">What's next</div>
+  <h2>Head back to the walkthrough.</h2>
+  <p class="lead">When you have seen your edit land on this slide via the public site, you have done the full edit-to-published loop. The rest of the onboarding is about file structure, where things live, and how we run the operation day to day.</p>
+  <ul class="steps">
+    <li>File your first real issue using a template.</li>
+    <li>Skim WAYS-OF-WORKING to see how work moves.</li>
+    <li>Ping Johan if anything was confusing. The onboarding doc gets rewritten when it is.</li>
+  </ul>
+  <a class="cta" href="https://github.com/JW-Sthlm/frontier-consultancy">Back to the repo →</a>
+  <div class="slide-counter">Slide 3 of 3 · end</div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontier Consultancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a;
+  --bg-card:rgba(255,255,255,.03);
+  --bg-elevated:rgba(255,255,255,.05);
+  --fg:#f0f1f3;
+  --fg-soft:rgba(240,241,243,.78);
+  --fg-weak:rgba(240,241,243,.55);
+  --fg-faint:rgba(240,241,243,.35);
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.14);
+  --aurora-cyan:#22d3ee;
+  --aurora-purple:#a78bfa;
+  --aurora-pink:#f472b6;
+  --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+  --status-live:#34d399;
+  --status-review:#fbbf24;
+  --status-future:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.55;
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+body::before,body::after{
+  content:'';position:fixed;width:55vw;height:55vw;border-radius:50%;
+  filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+}
+body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+main{position:relative;z-index:1}
+.container{max-width:1180px;margin:0 auto;padding:0 clamp(24px,5vw,56px)}
+
+.topnav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px clamp(24px,5vw,56px);max-width:1180px;margin:0 auto;
+  position:relative;z-index:10;
+}
+.topnav-brand{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:800;font-size:18px;letter-spacing:-.01em;
+}
+.topnav-brand span{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.topnav-links{display:flex;gap:24px;flex-wrap:wrap;justify-content:flex-end}
+.topnav-links a{
+  color:var(--fg-soft);text-decoration:none;font-size:14px;font-weight:500;
+  transition:color .15s;
+}
+.topnav-links a:hover{color:var(--fg)}
+.topnav-burger{
+  display:none;background:transparent;border:1px solid var(--line-strong);
+  color:var(--fg);width:40px;height:40px;border-radius:10px;cursor:pointer;
+  padding:0;align-items:center;justify-content:center;flex-direction:column;gap:5px;
+}
+.topnav-burger span{
+  display:block;width:18px;height:2px;background:var(--fg);border-radius:2px;
+  transition:transform .2s,opacity .2s;
+}
+.topnav-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.topnav-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.topnav-burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Internal stripe — visible warning that this is the reviewer surface */
+.internal-stripe{
+  background:#b6242a;color:#ffffff;
+  padding:8px clamp(24px,5vw,56px);
+  font-size:13px;font-weight:500;
+  display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  position:relative;z-index:11;
+}
+.internal-stripe-tag{
+  background:rgba(0,0,0,.22);color:#ffffff;
+  padding:2px 8px;border-radius:4px;
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+}
+.internal-stripe-text{color:rgba(255,255,255,.92);flex:1;min-width:0}
+.internal-stripe-link{color:#ffffff;text-decoration:underline;text-underline-offset:3px;font-weight:600;white-space:nowrap}
+.internal-stripe-link:hover{color:rgba(255,255,255,.85)}
+@media (max-width:560px){
+  .internal-stripe{font-size:12px;gap:10px}
+  .internal-stripe-text{flex-basis:100%;order:3}
+}
+@media (max-width:760px){
+  .topnav-burger{display:flex}
+  .topnav-links{
+    position:absolute;top:calc(100% + 8px);right:clamp(24px,5vw,56px);
+    flex-direction:column;align-items:flex-start;gap:0;
+    background:rgba(10,11,14,.96);backdrop-filter:blur(20px);
+    border:1px solid var(--line-strong);border-radius:14px;
+    padding:8px;min-width:200px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    display:none;
+  }
+  .topnav-links.is-open{display:flex}
+  .topnav-links a{
+    width:100%;padding:10px 14px;border-radius:8px;font-size:15px;
+  }
+  .topnav-links a:hover{background:var(--bg-elevated)}
+}
+
+.hero{padding-top:72px;padding-bottom:56px}
+.eyebrow{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;color:var(--fg-weak);margin-bottom:20px;
+}
+.hero h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(40px,5.5vw,72px);
+  line-height:.98;font-weight:900;letter-spacing:-.035em;
+  text-wrap:balance;max-width:16ch;margin-bottom:24px;
+}
+.hero h1 .accent{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero .lead{
+  font-size:21px;line-height:1.55;max-width:58ch;
+  color:var(--fg-soft);text-wrap:pretty;
+}
+
+.section{padding-top:48px;padding-bottom:48px}
+.section-eyebrow{
+  font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--fg-weak);margin-bottom:14px;
+}
+.section h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(30px,3.2vw,44px);
+  line-height:1.15;font-weight:800;letter-spacing:-.015em;
+  text-wrap:balance;margin-bottom:14px;
+}
+.section-lead{
+  font-size:17px;color:var(--fg-soft);max-width:62ch;text-wrap:pretty;
+}
+
+.track-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:24px;margin-top:36px;
+}
+.track-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;padding:32px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:border-color .2s, transform .2s;
+}
+.track-card:hover{border-color:var(--line-strong)}
+.track-card.live::before,
+.track-card.review::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  padding:1px;background:var(--aurora);
+  -webkit-mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;opacity:.35;
+}
+.track-card.live::before{opacity:.6}
+.track-card.future{opacity:.7}
+
+.track-status{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:6px 12px;border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--line);
+  margin-bottom:20px;align-self:flex-start;
+}
+.track-status .dot{
+  width:7px;height:7px;border-radius:50%;display:inline-block;
+}
+.track-status.live .dot{background:var(--status-live);box-shadow:0 0 12px var(--status-live)}
+.track-status.review .dot{background:var(--status-review);box-shadow:0 0 12px var(--status-review)}
+.track-status.future .dot{background:var(--status-future)}
+.track-status.live{color:var(--status-live)}
+.track-status.review{color:var(--status-review)}
+.track-status.future{color:var(--fg-weak)}
+
+.track-card h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:26px;line-height:1.15;font-weight:800;letter-spacing:-.02em;
+  margin-bottom:6px;
+}
+.track-audience{
+  font-size:13px;color:var(--fg-weak);font-weight:500;
+  margin-bottom:18px;
+}
+.track-desc{
+  font-size:15px;color:var(--fg-soft);line-height:1.55;
+  text-wrap:pretty;margin-bottom:24px;flex:1;
+}
+
+.track-actions{display:flex;flex-direction:column;gap:10px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;border-radius:10px;
+  font-size:14px;font-weight:600;
+  text-decoration:none;transition:all .15s;
+  border:1px solid var(--line-strong);
+  white-space:nowrap;
+}
+.btn-primary{background:var(--aurora);color:#0a0a0c;border-color:transparent}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(167,139,250,.25)}
+.btn-secondary{background:var(--bg-elevated);color:var(--fg)}
+.btn-secondary:hover{background:rgba(255,255,255,.08);border-color:var(--fg-weak)}
+.btn-ghost{background:transparent;color:var(--fg-soft);border-color:var(--line)}
+.btn-ghost:hover{color:var(--fg);border-color:var(--line-strong);background:var(--bg-card)}
+.btn-disabled{
+  background:transparent;color:var(--fg-faint);
+  border-color:var(--line);cursor:not-allowed;
+}
+.btn .lock{font-size:11px;opacity:.7;margin-left:4px}
+
+.material-block{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:36px 40px;
+  margin-top:24px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:32px;align-items:center;
+}
+.material-block-text h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:22px;font-weight:800;letter-spacing:-.015em;margin-bottom:8px;
+}
+.material-block-text p{font-size:15px;color:var(--fg-soft);line-height:1.55}
+.code{
+  display:inline-block;background:rgba(0,0,0,.4);
+  border:1px solid var(--line-strong);border-radius:10px;
+  padding:14px 18px;
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:13px;color:var(--fg);
+  white-space:nowrap;
+}
+
+.colset{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:48px;margin-top:32px;
+}
+.colset h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:20px;font-weight:800;letter-spacing:-.01em;margin-bottom:14px;
+}
+.colset p,.colset li{font-size:15px;color:var(--fg-soft);line-height:1.6}
+.colset ul{list-style:none;padding:0}
+.colset li{padding:6px 0;border-bottom:1px solid var(--line)}
+.colset li:last-child{border:none}
+.colset li strong{color:var(--fg);font-weight:600}
+
+.leads-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:18px;margin-top:28px;
+}
+.lead-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:22px 22px 20px;
+  display:flex;flex-direction:column;align-items:flex-start;
+}
+.lead-avatar{
+  width:80px;height:80px;border-radius:50%;
+  overflow:hidden;margin-bottom:14px;
+  background:var(--bg-elevated);
+  display:flex;align-items:center;justify-content:center;
+}
+.lead-avatar img{width:100%;height:100%;object-fit:cover}
+.lead-avatar-initials{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-weight:800;font-size:28px;
+  color:#0a0a0c;letter-spacing:-.02em;
+}
+.lead-name{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:18px;font-weight:800;letter-spacing:-.01em;
+  margin-bottom:2px;
+}
+.lead-role{font-size:13px;color:var(--fg-weak);line-height:1.4;margin-bottom:8px}
+.lead-track{
+  font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--aurora-purple);margin-bottom:14px;
+}
+.lead-mail{
+  font-size:13px;color:var(--fg-soft);text-decoration:none;
+  border-bottom:1px solid var(--line);padding-bottom:2px;
+  word-break:break-all;margin-top:auto;
+}
+.lead-mail:hover{color:var(--fg);border-color:var(--fg-soft)}
+
+.why-prose p{
+  font-size:17px;line-height:1.7;color:var(--fg-soft);text-wrap:pretty;
+  max-width:68ch;margin-bottom:18px;
+}
+.why-prose p:last-child{margin-bottom:0}
+
+.why-fold{display:block}
+.why-fold > summary{
+  list-style:none;cursor:pointer;user-select:none;
+  display:flex;align-items:flex-start;gap:24px;
+  padding:24px 28px;margin:0;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,.015);
+  transition:background .2s ease,border-color .2s ease;
+}
+.why-fold > summary::-webkit-details-marker{display:none}
+.why-fold > summary:hover{
+  background:rgba(255,255,255,.04);
+  border-color:rgba(34,211,238,.35);
+}
+.why-fold > summary:focus-visible{outline:2px solid var(--aurora-cyan);outline-offset:4px}
+.why-fold .summary-text{flex:1;min-width:0}
+.why-fold .summary-text .section-eyebrow{margin-bottom:8px}
+.why-fold .summary-text h2{margin-bottom:0;transition:color .2s ease}
+.why-fold > summary:hover .summary-text h2{color:var(--aurora-cyan)}
+.why-fold .summary-teaser{
+  font-size:16px;line-height:1.65;color:var(--fg-weak);
+  margin-top:18px;margin-bottom:14px;
+  max-width:62ch;text-wrap:pretty;
+  opacity:.65;
+  -webkit-mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.25) 100%);
+          mask-image:linear-gradient(180deg,#000 55%,rgba(0,0,0,.25) 100%);
+}
+.why-fold .read-more{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:.04em;color:var(--aurora-cyan);
+  transition:gap .2s ease;
+}
+.why-fold .read-more .arrow{transition:transform .2s ease;font-size:14px;line-height:1}
+.why-fold > summary:hover .read-more{gap:10px}
+.why-fold > summary:hover .read-more .arrow{transform:translateY(2px)}
+.why-fold[open] .summary-teaser,
+.why-fold[open] .read-more{display:none}
+.why-fold .toggle-icon{
+  flex-shrink:0;margin-top:4px;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(34,211,238,.08);
+  border:1px solid rgba(34,211,238,.35);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--aurora-cyan);
+  font-size:18px;line-height:1;font-weight:600;
+  transition:transform .25s ease,background .2s ease;
+}
+.why-fold > summary:hover .toggle-icon{background:rgba(34,211,238,.16)}
+.why-fold[open] .toggle-icon{transform:rotate(180deg)}
+.why-fold .why-prose{
+  margin-top:24px;padding:0 28px;
+  animation:why-fade .25s ease-out;
+}
+@keyframes why-fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (max-width:560px){
+  .why-fold > summary{padding:18px 20px;gap:16px}
+  .why-fold .toggle-icon{width:36px;height:36px;font-size:16px}
+  .why-fold .why-prose{padding:0 20px}
+}
+
+.feedback-callout{
+  background:linear-gradient(135deg,rgba(34,211,238,.06) 0%,rgba(244,114,182,.06) 100%);
+  border:1px solid var(--line-strong);
+  border-radius:18px;
+  padding:36px 40px;
+  margin-top:24px;
+  position:relative;
+}
+.feedback-callout::before{
+  content:'';position:absolute;inset:0;border-radius:18px;
+  padding:1px;background:var(--aurora);
+  -webkit-mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;opacity:.45;
+}
+.feedback-callout .feedback-eyebrow{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:700;color:var(--aurora-cyan);margin-bottom:14px;
+}
+.feedback-callout h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:24px;font-weight:800;letter-spacing:-.015em;
+  margin-bottom:12px;text-wrap:balance;
+}
+.feedback-callout p{
+  font-size:15.5px;line-height:1.65;color:var(--fg-soft);text-wrap:pretty;
+  margin-bottom:10px;
+}
+.feedback-callout p:last-child{margin-bottom:0}
+.feedback-callout strong{color:var(--fg);font-weight:600}
+
+footer{border-top:1px solid var(--line);padding:32px 0;margin-top:64px}
+footer .container{
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;
+  font-size:13px;color:var(--fg-weak);
+}
+footer a{color:var(--fg-soft);text-decoration:none}
+footer a:hover{color:var(--fg)}
+
+@media (max-width:720px){
+  .hero{padding:48px 0 32px}
+  .material-block{grid-template-columns:1fr}
+  .code{white-space:normal;word-break:break-all}
+  .colset{grid-template-columns:1fr;gap:32px}
+  .leads-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+}
+</style>
+</head>
+<body>
+
+<div class="internal-stripe" role="note" aria-label="Internal surface">
+  <span class="internal-stripe-tag">Internal · Microsoft</span>
+  <span class="internal-stripe-text">Reviewer surface. Please do not share with partners.</span>
+  <a class="internal-stripe-link" href="partners/">Partner version →</a>
+</div>
+
+<nav class="topnav">
+  <div class="topnav-brand">Frontier <span>Consultancy</span></div>
+  <button class="topnav-burger" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="topnav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topnav-links" id="topnav-links">
+    <!-- Populated at runtime from <section data-nav-label="..."> in source order -->
+  </div>
+</nav>
+
+<main>
+<section class="container hero">
+  <div class="eyebrow">Internal review · Frontier Consultancy</div>
+  <h1>Building <span class="accent">AI-first delivery</span> partners.</h1>
+  <p class="lead">Internal review of partner workshop content. Microsoft and named reviewers only. The decks, storyboards, and exercises here are still being shaped, and your eyes on them are part of how they get sharper before they go partner-facing.</p>
+</section>
+
+<section class="container section" id="why" data-nav-label="Why">
+  <details class="why-fold">
+    <summary>
+      <div class="summary-text">
+        <div class="section-eyebrow">Why this exists</div>
+        <h2>Partner delivery is changing fast.</h2>
+        <p class="summary-teaser">Agents and MCP-connected tools are starting to handle the parts of delivery that used to eat consultant hours: backlog grooming, scaffolding, infrastructure, test, the admin around every project.</p>
+        <span class="read-more">Show more <span class="arrow" aria-hidden="true">&#9662;</span></span>
+      </div>
+      <span class="toggle-icon" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="why-prose">
+      <p>Agents and MCP-connected tools are starting to handle the parts of delivery that used to eat consultant hours: backlog grooming, scaffolding, infrastructure, test, the admin around every project. The business case is already solid. Customer expectations will follow. The partners building this motion now have a real window to differentiate, and in a year or two, AI-first delivery becomes the baseline.</p>
+      <p>And the motion doesn't stop at hand-off. <b>Build AND operate.</b> The same agent fleet that builds a customer platform can stay on to run it. That opens a hybrid revenue model for partners: project revenue on the build, recurring revenue on the operating layer, same toolstack doing both.</p>
+      <p>Frontier Consultancy is the motion that helps partners get there. Today it runs across two tracks: Cloud and AI Platform, and AI Business Solutions for Dynamics partners. More in the pipeline. Each track walks partners through what AI-first delivery looks like in their space, the delivery paths their teams can adopt, and hands-on exercises where they design reusable agents they can put to work on real projects.</p>
+      <p>Everyone leaves with a curated set of skills, agents, and MCP servers ready to install in their own toolstack: Copilot CLI, VS Code, whatever they use. The change doesn't end when the workshop does. The intent is simple. Give partners the knowledge and the tools to start delivering this way, on real projects, the week after.</p>
+    </div>
+  </details>
+</section>
+
+<section class="container section" id="tracks" data-nav-label="Tracks">
+  <div class="section-eyebrow">Tracks</div>
+  <h2>Three tracks. Each self-contained.</h2>
+  <p class="section-lead">Pick the one that matches your role. The deck runs live. The exercise material clones to your machine. You keep the work after the session.</p>
+
+  <div class="track-grid">
+
+    <article class="track-card live">
+      <div class="track-status live"><span class="dot"></span>Live</div>
+      <h3>Cloud and AI Platform</h3>
+      <div class="track-audience">CAIP. Azure / Cloud and AI Platform partners</div>
+      <p class="track-desc">Build AI-first delivery muscle on Azure. Deck, exercise scenario, three setup tiers, FAQ. Owner: Johan Wallquist.</p>
+      <div class="track-actions">
+        <a class="btn btn-primary" href="caip/presentation/">Watch deck</a>
+        <a class="btn btn-ghost" href="caip/storyboard.html">Storyboard</a>
+        <a class="btn btn-secondary" href="caip/">Material</a>
+      </div>
+    </article>
+
+    <article class="track-card live">
+      <div class="track-status live"><span class="dot"></span>Live</div>
+      <h3>AI Business Solutions</h3>
+      <div class="track-audience">AIBS. Dynamics partners</div>
+      <p class="track-desc">AI-first delivery for Dynamics 365 partners. Pilot deliveries running with EMEA partners. Co-owners: Giel Cuijpers, Marvin Heilemann.</p>
+      <div class="track-actions">
+        <a class="btn btn-primary" href="aibs/presentation/">Watch deck</a>
+        <a class="btn btn-secondary" href="aibs/">Material</a>
+      </div>
+    </article>
+
+    <article class="track-card future">
+      <div class="track-status future"><span class="dot"></span>Future</div>
+      <h3>Security</h3>
+      <div class="track-audience">Track in scoping</div>
+      <p class="track-desc">Security track is being shaped now. Audience, scenario, and exercise scope in design. Ping Johan if you want to weigh in.</p>
+      <div class="track-actions">
+        <a class="btn btn-secondary" href="security/">Open placeholder</a>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section class="container section" id="one-pager" data-nav-label="One-pager">
+  <div class="section-eyebrow">Cross-track</div>
+  <h2>Partner one-pager.</h2>
+  <p class="section-lead">Two-minute overview of Frontier. All three tracks, partner outcomes, the engagement model, who to contact. Standalone page for sharing in a link, or a single-page PDF for email and print.</p>
+
+  <div class="track-grid">
+    <article class="track-card live">
+      <div class="track-status live"><span class="dot"></span>Partner-facing</div>
+      <h3>Frontier Consultancy &middot; one-pager</h3>
+      <div class="track-audience">Partners. Prospective track leads. Internal Microsoft.</div>
+      <p class="track-desc">The fastest way to put Frontier on someone's radar. Same content in two formats. Co-owners: Johan, Giel, Marvin, Madalina.</p>
+      <div class="track-actions">
+        <a class="btn btn-primary" href="partner-overview/">Open one-pager</a>
+        <a class="btn btn-secondary" href="partner-overview/one-pager.pdf">Download PDF</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="container section" id="manager-briefing" data-nav-label="Manager brief">
+  <div class="section-eyebrow">Cross-track</div>
+  <h2>Manager brief.</h2>
+  <p class="section-lead">A short narrative that frames Frontier across all three tracks. Originally built as the C-level executive briefing, now reframed for partner-team managers. The deck has three versions: 16-slide manager brief, 8-slide executive brief, and the original v1 draft kept for lineage. Co-owners: Giel, Marvin, Johan.</p>
+
+  <div class="track-grid">
+    <article class="track-card review">
+      <div class="track-status review"><span class="dot"></span>Internal &middot; private repo</div>
+      <h3>Frontier Consultancy &middot; Manager brief</h3>
+      <div class="track-audience">Partner-team managers. Partner leadership. Internal Microsoft.</div>
+      <p class="track-desc">These decks are MS-internal and live in the private repo, not on this public surface. Open them from <code>shared/ptm-deck/</code> and <code>shared/c-level-deck/</code> in <a href="https://github.com/JW-Sthlm/frontier-consultancy">JW-Sthlm/frontier-consultancy</a>. See <code>EDIT-GUIDE.md</code> in the same folders for how to edit.</p>
+    </article>
+  </div>
+</section>
+
+<section class="container section" id="starter-pack">
+  <div class="section-eyebrow">Concept &middot; for review</div>
+  <h2>Select your toolbox starter pack.</h2>
+  <p class="section-lead">A partner-facing service for assembling Copilot CLI capabilities. Pick the skills, agents, and MCP servers that fit your role. Check out. Walk away with a real script you can run. The prototype is in the private repo while we figure out shape and content.</p>
+
+  <div class="track-grid">
+    <article class="track-card future">
+      <div class="track-status future"><span class="dot"></span>Prototype &middot; private repo</div>
+      <h3>Copilot CLI Starter Pack &middot; v0.1</h3>
+      <div class="track-audience">Partner enablement. Self-service toolbox. Discussion piece for the team.</div>
+      <p class="track-desc">Browse capabilities across Cloud &amp; AI Platforms, AI Business Solutions, and Security. Filter by phase or maintainer. Start from a curated preset, edit, check out. Download produces a real <code>Setup.ps1</code> with the manifest embedded and install snippets you can run today. Open the prototype at <code>shared/starter-pack/index.html</code> in <a href="https://github.com/JW-Sthlm/frontier-consultancy">JW-Sthlm/frontier-consultancy</a>.</p>
+    </article>
+  </div>
+</section>
+
+<section class="container section" id="feedback" data-nav-label="Feedback">
+  <div class="feedback-callout">
+    <div class="feedback-eyebrow">Reviewer feedback</div>
+    <h3>Small comments help this become reusable.</h3>
+    <p>If something reads off, lands wrong for your partners, or could be sharper, send a note. Direction matters more than polish at this stage.</p>
+    <p><strong>Send notes to Johan via Teams or email.</strong> A line on a specific slide is great. A whole reaction is even better.</p>
+    <p>This page is unadvertised. Please do not share the URL outside Microsoft.</p>
+  </div>
+</section>
+
+<section class="container section" id="material" data-nav-label="Material">
+  <div class="section-eyebrow">Get the material</div>
+  <h2>Clone the repo. Keep the material.</h2>
+  <p class="section-lead">Setup guides, exercise scenarios, deliverable templates, FAQ. Cloned to your machine, yours after the session.</p>
+
+  <div class="material-block">
+    <div class="material-block-text">
+      <h3>Clone or download</h3>
+      <p>Clone for the full repo. Or hit the green Code button on GitHub for a zip.</p>
+    </div>
+    <code class="code">git clone https://github.com/JW-Sthlm/frontier-consultancy-public.git</code>
+  </div>
+</section>
+
+<section class="container section" id="facilitators" data-nav-label="Track leads">
+  <div class="section-eyebrow">Track leads</div>
+  <h2>Reach the EMEA team.</h2>
+  <p class="section-lead">Partner Solution Architects behind Frontier. Send a partner name, a question, or a hand raised to join. Direct mail works.</p>
+
+  <div class="leads-grid">
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="photos/johan.jpg" alt="Johan Wallquist"/></div>
+      <div class="lead-name">Johan Wallquist</div>
+      <div class="lead-role">Partner Solution Architect</div>
+      <div class="lead-track">CAIP track</div>
+      <a class="lead-mail" href="mailto:jwallquist@microsoft.com">jwallquist@microsoft.com</a>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="photos/giel.jpg" alt="Giel Cuijpers"/></div>
+      <div class="lead-name">Giel Cuijpers</div>
+      <div class="lead-role">Sr Partner Solution Architect</div>
+      <div class="lead-track">AIBS track</div>
+      <a class="lead-mail" href="mailto:gielcuijpers@microsoft.com">gielcuijpers@microsoft.com</a>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="photos/marvin.jpg" alt="Marvin Heilemann"/></div>
+      <div class="lead-name">Marvin Heilemann</div>
+      <div class="lead-role">Cloud Solution Architect</div>
+      <div class="lead-track">AIBS track</div>
+      <a class="lead-mail" href="mailto:Marvin.Heilemann@microsoft.com">Marvin.Heilemann@microsoft.com</a>
+    </article>
+    <article class="lead-card">
+      <div class="lead-avatar"><img src="photos/madalina.jpg" alt="Madalina Dobre"/></div>
+      <div class="lead-name">Madalina Dobre</div>
+      <div class="lead-role">Sr Partner Solution Architect</div>
+      <div class="lead-track">Security · in scoping</div>
+      <a class="lead-mail" href="mailto:Madalina.Dobre@microsoft.com">Madalina.Dobre@microsoft.com</a>
+    </article>
+  </div>
+</section>
+
+<section class="container section" id="collaborators">
+  <div class="colset">
+    <div>
+      <h3>For facilitators</h3>
+      <p>Run-of-show, debrief structure, and internal critique live in the private source repo. Sign in with your collaborator account and clone:</p>
+      <code class="code" style="margin-top:14px;display:block">git clone https://github.com/JW-Sthlm/frontier-consultancy.git</code>
+      <ul style="margin-top:18px">
+        <li><strong>AIBS deck source:</strong> tracks/aibs/presentation/index-structured.html</li>
+        <li><strong>Internal notes:</strong> tracks/&lt;track&gt;/_internal/</li>
+        <li><strong>Owners:</strong> Johan (CAIP), Giel and Marvin (AIBS)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What's not here</h3>
+      <p>Storyboards, internal critiques, draft variants, snapshot history, and research-in-flight live in the private source repo. Microsoft collaborators who need access can ping Johan. The partner-facing umbrella and per-track participant pages are linked from the workshop invite, not from this page.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <div>Internal review surface. Microsoft and named reviewers only. Please do not share the URL outside Microsoft.</div>
+    <div><a href="https://github.com/JW-Sthlm/frontier-consultancy-public">View on GitHub</a></div>
+  </div>
+</footer>
+
+<script>
+// Dynamic top nav: any <section data-nav-label="..."> in source order becomes a nav link.
+// Burger menu shows on narrow viewports (<=760px) and closes on link click or outside tap.
+(function () {
+  var nav = document.getElementById('topnav-links');
+  var burger = document.querySelector('.topnav-burger');
+  if (!nav) return;
+  document.querySelectorAll('section[id][data-nav-label]').forEach(function (s) {
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.textContent = s.dataset.navLabel;
+    nav.appendChild(a);
+  });
+  if (burger) {
+    burger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = nav.classList.toggle('is-open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    nav.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') {
+        nav.classList.remove('is-open');
+        burger.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (!nav.contains(e.target) && !burger.contains(e.target)) {
+        nav.classList.remove('is-open');
+        burger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+})();
+</script>
+
+<script>
+// Local-preview link rewriter.
+// When this page is opened directly from disk (file:// protocol) the published-style
+// relative hrefs (caip/presentation/, ptm/, partner-overview/ etc.) do not resolve
+// because the local tree is split across tracks/ and shared/ rather than the flat
+// public layout. This rewrites those hrefs to their local equivalents so the page
+// is fully clickable when previewing locally. No effect under http(s).
+(function () {
+  if (location.protocol !== 'file:') return;
+  var map = {
+    'caip/presentation/':            '../../tracks/caip/presentation/index.html',
+    'caip/storyboard.html':          '../../tracks/caip/presentation/storyboard.html',
+    'caip/':                         '../../tracks/caip/',
+    'aibs/presentation/':            '../../tracks/aibs/presentation/index-structured.html',
+    'aibs/':                         '../../tracks/aibs/',
+    'security/':                     '../../tracks/security/landing/index.html',
+    'partner-overview/':             '../../shared/partner-overview/one-pager-v2.html',
+    'partner-overview/one-pager.pdf':'../../shared/partner-overview/one-pager-v2.pdf'
+  };
+  document.querySelectorAll('a[href]').forEach(function (a) {
+    var raw = a.getAttribute('href');
+    if (map.hasOwnProperty(raw)) a.setAttribute('href', map[raw]);
+  });
+  var banner = document.createElement('div');
+  banner.textContent = 'Local preview mode: links rewritten to on-disk paths.';
+  banner.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:99;font:500 11px Inter,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:rgba(240,241,243,.55);background:rgba(7,8,10,.7);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 10px;backdrop-filter:blur(8px)';
+  document.body.appendChild(banner);
+})();
+</script>
+
+</body>
+</html>
