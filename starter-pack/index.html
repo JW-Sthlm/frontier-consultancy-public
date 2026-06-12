@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Copilot CLI Starter Pack — build your set</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080a;
+    --surface:rgba(255,255,255,.03);
+    --surface-elev:rgba(255,255,255,.05);
+    --border:rgba(255,255,255,.08);
+    --border-strong:rgba(255,255,255,.14);
+    --fg:#f0f1f3;
+    --fg-secondary:rgba(240,241,243,.78);
+    --fg-weak:rgba(240,241,243,.55);
+    --fg-faint:rgba(240,241,243,.35);
+    --accent:#22d3ee;
+    --accent-strong:#67e8f9;
+    --accent-soft:rgba(34,211,238,.12);
+    --aurora-cyan:#22d3ee;
+    --aurora-purple:#a78bfa;
+    --aurora-pink:#f472b6;
+    --aurora:linear-gradient(135deg,#22d3ee 0%,#a78bfa 50%,#f472b6 100%);
+    --warn:#fbbf24;
+    --warn-soft:rgba(251,191,36,.12);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--fg);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+    position:relative;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  body::before,body::after{
+    content:'';position:fixed;width:55vw;height:55vw;border-radius:50%;
+    filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+  }
+  body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+  body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+  h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.015em;text-wrap:balance;margin:0}
+  h1{font-size:clamp(36px,4.5vw,56px);font-weight:800;line-height:1.05;letter-spacing:-.025em;color:var(--fg)}
+  h1 .accent{background:var(--aurora);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  h2{font-size:clamp(22px,2.2vw,28px);font-weight:700;line-height:1.2;color:var(--fg)}
+  h3{font-size:16px;font-weight:700;line-height:1.3}
+  p{margin:0;text-wrap:pretty}
+
+  /* ── Top bar ── */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(7,8,10,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+    padding:14px 32px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--fg)}
+  .brand-mark{
+    width:28px;height:28px;border-radius:7px;
+    background:var(--aurora);
+    display:grid;place-items:center;color:#07080a;font-size:13px;font-weight:800;
+  }
+  .topbar nav{display:flex;gap:24px;font-size:13px;color:var(--fg-secondary)}
+  .topbar nav a{color:inherit;text-decoration:none;font-weight:500;transition:color .15s ease}
+  .topbar nav a:hover{color:var(--accent)}
+
+  /* ── Hero ── */
+  .hero{
+    max-width:1200px;margin:0 auto;padding:64px 32px 32px;
+    position:relative;z-index:1;
+  }
+  .eyebrow{
+    display:inline-block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);padding:6px 12px;border-radius:999px;
+    margin-bottom:20px;border:1px solid rgba(34,211,238,.25);
+  }
+  .hero p.lead{
+    font-size:21px;line-height:1.55;color:var(--fg-secondary);
+    max-width:54ch;margin-top:18px;
+  }
+
+  /* ── Quick starts ── */
+  .quickstart{
+    max-width:1200px;margin:0 auto;padding:24px 32px 16px;
+    position:relative;z-index:1;
+  }
+  .quickstart h2{font-size:12px;font-weight:600;color:var(--fg-weak);text-transform:uppercase;letter-spacing:.16em;margin-bottom:14px}
+  .preset-row{display:flex;gap:12px;flex-wrap:wrap}
+  .preset{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px 22px;min-width:180px;cursor:pointer;text-align:left;font-family:inherit;color:var(--fg);
+    transition:all .15s ease;
+  }
+  .preset:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .preset.active{border-color:var(--accent);background:var(--accent-soft)}
+  .preset .ico{font-size:22px;margin-bottom:8px}
+  .preset .name{font-weight:700;font-size:15px;color:var(--fg)}
+  .preset .meta{font-size:12px;color:var(--fg-weak);margin-top:4px}
+
+  /* ── Layout ── */
+  .layout{
+    max-width:1200px;margin:0 auto;padding:32px 32px 80px;
+    position:relative;z-index:1;
+    display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:32px;
+  }
+  @media (max-width:980px){.layout{grid-template-columns:1fr}}
+
+  /* ── Filters ── */
+  .filters{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px 16px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  }
+  .filter-label{font-size:11px;font-weight:600;color:var(--fg-weak);text-transform:uppercase;letter-spacing:.12em;margin-right:4px}
+  .chip{
+    border:1px solid var(--border);background:transparent;
+    padding:6px 12px;border-radius:999px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--fg-secondary);
+    transition:all .12s ease;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--fg)}
+  .chip.active{background:var(--accent);color:#07080a;border-color:var(--accent);font-weight:600}
+  .chip-divider{width:1px;height:18px;background:var(--border);margin:0 6px}
+  .glossary-link{
+    border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:500;
+    cursor:pointer;padding:6px 8px;font-family:inherit;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;
+  }
+  .glossary-link:hover{color:var(--fg)}
+  .phase-pill{
+    font-size:10px;padding:2px 7px;border-radius:999px;
+    background:rgba(255,255,255,.05);color:var(--fg-secondary);font-weight:500;
+    border:1px solid var(--border);
+  }
+
+  /* ── Catalog grid ── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:18px;display:flex;flex-direction:column;gap:10px;
+    transition:all .15s ease;cursor:pointer;
+    position:relative;color:var(--fg);
+  }
+  .card:hover{border-color:var(--border-strong);box-shadow:var(--shadow);transform:translateY(-1px)}
+  .card.in-cart{
+    border-color:transparent;
+    background:linear-gradient(180deg,rgba(34,211,238,.08) 0%,var(--surface) 60%);
+  }
+  .card.in-cart::before{
+    content:'';position:absolute;inset:0;border-radius:14px;
+    padding:1px;background:var(--aurora);
+    -webkit-mask:linear-gradient(#fff,#fff) content-box,linear-gradient(#fff,#fff);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+  .card-icon{font-size:22px}
+  .card-name{font-weight:700;font-size:15px;line-height:1.25;color:var(--fg)}
+  .card-desc{font-size:13px;color:var(--fg-secondary);line-height:1.45;flex-grow:1}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .badge{
+    font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .b-skill{background:rgba(96,165,250,.16);color:#93c5fd}
+  .b-agent{background:rgba(167,139,250,.16);color:#c4b5fd}
+  .b-mcp{background:rgba(244,114,182,.16);color:#f9a8d4}
+  .b-instr{background:rgba(251,191,36,.16);color:#fcd34d}
+  .b-hook{background:rgba(52,211,153,.16);color:#6ee7b7}
+  .b-area{background:rgba(255,255,255,.06);color:var(--fg-secondary)}
+  .b-source-ms{background:rgba(34,211,238,.16);color:#67e8f9}
+  .b-source-vteam{background:rgba(167,139,250,.16);color:#c4b5fd}
+  .b-source-comm{background:rgba(255,255,255,.06);color:var(--fg-weak)}
+  .glossary-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media (max-width:560px){.glossary-grid{grid-template-columns:1fr}}
+  .glossary-item{
+    background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:14px 16px;
+  }
+  .glossary-item h3{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:6px;color:var(--fg)}
+  .glossary-item h3 .badge{font-size:9px}
+  .glossary-item p{font-size:13px;color:var(--fg-secondary);line-height:1.5}
+  .glossary-item .ex{font-size:12px;color:var(--fg-weak);margin-top:6px;font-style:italic}
+  .add-btn{
+    margin-top:8px;border:1px solid var(--border-strong);background:transparent;
+    padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;
+    color:var(--fg-secondary);transition:all .12s ease;
+  }
+  .add-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .add-btn.added{background:var(--accent);color:#07080a;border-color:var(--accent)}
+
+  /* ── Cart panel ── */
+  .cart{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:22px;position:sticky;top:84px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  }
+  .cart h2{font-size:18px;display:flex;align-items:center;justify-content:space-between;color:var(--fg)}
+  .cart-count{
+    font-size:12px;background:var(--aurora);color:#07080a;padding:3px 10px;border-radius:999px;font-weight:700;
+  }
+  .cart-empty{
+    color:var(--fg-weak);font-size:14px;margin-top:14px;padding:24px 0;text-align:center;
+    border:1px dashed var(--border);border-radius:10px;
+  }
+  .cart-section{margin-top:18px}
+  .cart-section h3{font-size:11px;font-weight:600;color:var(--fg-weak);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+  .cart-item{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:8px 10px;border-radius:8px;font-size:13px;
+  }
+  .cart-item:hover{background:rgba(255,255,255,.04)}
+  .cart-item .nm{font-weight:500;line-height:1.3;color:var(--fg)}
+  .cart-item .rm{
+    border:none;background:transparent;color:var(--fg-weak);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;
+  }
+  .cart-item .rm:hover{background:rgba(244,63,94,.16);color:#fca5a5}
+  .warn{
+    background:var(--warn-soft);border:1px solid rgba(251,191,36,.35);border-radius:10px;
+    padding:12px;font-size:13px;color:#fde68a;margin-top:14px;
+  }
+  .warn strong{display:block;margin-bottom:4px;color:var(--warn)}
+  .warn-actions{display:flex;gap:8px;margin-top:8px}
+  .warn-actions button{
+    border:1px solid rgba(251,191,36,.35);background:transparent;color:var(--warn);
+    padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .warn-actions button.primary{background:var(--warn);color:#07080a;border-color:var(--warn)}
+  .checkout{
+    width:100%;margin-top:18px;
+    background:var(--aurora);color:#07080a;border:none;
+    padding:14px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:-.005em;
+    transition:all .12s ease;
+  }
+  .checkout:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(34,211,238,.25)}
+  .checkout:disabled{background:var(--surface);color:var(--fg-faint);border:1px solid var(--border);cursor:not-allowed;transform:none;box-shadow:none}
+
+  /* ── Modal ── */
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-bg.show{display:flex}
+  .modal{
+    background:#0f1115;border:1px solid var(--border-strong);border-radius:16px;max-width:680px;width:100%;
+    padding:32px;max-height:85vh;overflow:auto;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);color:var(--fg);
+  }
+  .modal h2{margin-bottom:8px}
+  .modal .lead{color:var(--fg-secondary);font-size:15px;margin-bottom:20px}
+  .install-cmd{
+    background:#000;color:#a7f3d0;
+    padding:16px;border-radius:10px;font-family:'SF Mono','Consolas',monospace;font-size:13px;
+    word-break:break-all;line-height:1.5;position:relative;margin:14px 0;
+    border:1px solid var(--border);
+  }
+  .copy-btn{
+    position:absolute;top:10px;right:10px;
+    background:rgba(255,255,255,.08);color:var(--fg);border:1px solid var(--border);
+    padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,.14)}
+  .copy-btn.copied{background:var(--accent);color:#07080a;border-color:var(--accent)}
+  .checkout-options{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;
+  }
+  @media (max-width:640px){.checkout-options{grid-template-columns:1fr}}
+  .checkout-options button{
+    padding:14px;border:1px solid var(--border);background:transparent;color:var(--fg);
+    border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;
+  }
+  .checkout-options button:hover{border-color:var(--accent);color:var(--accent)}
+  .checkout-options button.copied{border-color:var(--accent);color:var(--accent);background:rgba(34,211,238,.08)}
+  .checkout-options .sub{display:block;font-size:12px;font-weight:400;color:var(--fg-weak);margin-top:4px}
+  .script-preview{
+    background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:10px;
+    padding:14px;font-family:'SF Mono','Consolas',monospace;font-size:11.5px;
+    max-height:280px;overflow:auto;color:var(--fg-secondary);margin-top:10px;white-space:pre;
+  }
+  .modal-close{
+    position:absolute;top:14px;right:14px;
+    background:transparent;border:none;font-size:20px;cursor:pointer;color:var(--fg-weak);padding:6px;line-height:1;
+  }
+  .modal-close:hover{color:var(--fg)}
+  .manifest-preview{
+    background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:10px;
+    padding:14px;font-family:'SF Mono','Consolas',monospace;font-size:11.5px;
+    max-height:200px;overflow:auto;color:var(--fg-secondary);margin-top:14px;
+  }
+
+  /* ── Footer ── */
+  .footer{
+    border-top:1px solid var(--border);padding:24px 32px;text-align:center;
+    color:var(--fg-weak);font-size:13px;
+    position:relative;z-index:1;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">⚡</div>
+    <div>Copilot CLI Starter Pack</div>
+  </div>
+  <nav>
+    <a href="../">← Frontier Consultancy</a>
+  </nav>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">PREVIEW · v0.1</div>
+  <h1>Build your Copilot CLI <span class="accent">starter pack</span>.</h1>
+  <p class="lead">Pick the skills, agents and MCPs that fit your role. Check out, run one command, and you're set up. Re-run anytime to update. Installs are idempotent.</p>
+</section>
+
+<section class="quickstart">
+  <h2>Quick start. Pick a phase to pre-fill</h2>
+  <div class="preset-row" id="presets">
+    <button class="preset" data-preset="pitch"><div class="ico">💼</div><div class="name">Pitch</div><div class="meta">Pre-sales · proposals</div></button>
+    <button class="preset" data-preset="scope"><div class="ico">🔍</div><div class="name">Scope</div><div class="meta">Discovery · workshops</div></button>
+    <button class="preset" data-preset="design"><div class="ico">🏛️</div><div class="name">Design</div><div class="meta">Architecture · ADRs</div></button>
+    <button class="preset" data-preset="build"><div class="ico">⚙️</div><div class="name">Build</div><div class="meta">Code · test · deploy</div></button>
+    <button class="preset" data-preset="run"><div class="ico">📈</div><div class="name">Run</div><div class="meta">Operate · monitor</div></button>
+    <button class="preset" data-preset="empty"><div class="ico">🧹</div><div class="name">Empty cart</div><div class="meta">browse everything</div></button>
+  </div>
+</section>
+
+<section class="layout">
+  <div>
+    <div class="filters" id="filters">
+      <span class="filter-label">Type</span>
+      <button class="chip active" data-type="all">All</button>
+      <button class="chip" data-type="skill">Skill</button>
+      <button class="chip" data-type="agent">Agent</button>
+      <button class="chip" data-type="mcp">MCP</button>
+      <button class="chip" data-type="instruction">Instruction</button>
+      <button class="chip" data-type="hook">Hook</button>
+      <button class="glossary-link" onclick="openGlossary()" title="What's the difference?">? What's the difference?</button>
+      <span class="chip-divider"></span>
+      <span class="filter-label">Phase</span>
+      <button class="chip active" data-phase="all">All</button>
+      <button class="chip" data-phase="pre-sales">Pre-sales</button>
+      <button class="chip" data-phase="discovery">Discovery</button>
+      <button class="chip" data-phase="design">Design</button>
+      <button class="chip" data-phase="build">Build</button>
+      <button class="chip" data-phase="test">Test</button>
+      <button class="chip" data-phase="deploy">Deploy</button>
+      <button class="chip" data-phase="operate">Operate</button>
+      <span class="chip-divider"></span>
+      <span class="filter-label">Solution area</span>
+      <button class="chip active" data-area="all">All</button>
+      <button class="chip" data-area="cloud-ai">Cloud &amp; AI</button>
+      <button class="chip" data-area="aibs">AIBS</button>
+      <button class="chip" data-area="security">Security</button>
+      <button class="chip" data-area="cross">Cross-cutting</button>
+      <span class="chip-divider"></span>
+      <span class="filter-label">Source</span>
+      <button class="chip active" data-source="all">All</button>
+      <button class="chip" data-source="microsoft">Microsoft</button>
+      <button class="chip" data-source="vteam">vTeam-curated</button>
+      <button class="chip" data-source="community">Community</button>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <aside class="cart" id="cart">
+    <h2>Your pack <span class="cart-count" id="cartCount">0</span></h2>
+    <div id="cartBody"></div>
+    <button class="checkout" id="checkoutBtn" disabled>Review &amp; install →</button>
+  </aside>
+</section>
+
+<div class="footer">
+  Open registry · contributions welcome · MIT licensed · Working preview, not the production site.
+</div>
+
+<div class="modal-bg" id="glossaryBg">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeGlossary()">×</button>
+    <h2>What's the difference?</h2>
+    <p class="lead">Five kinds of things you can install. Most starter packs mix several.</p>
+    <div class="glossary-grid">
+      <div class="glossary-item">
+        <h3><span class="badge b-skill">skill</span> Skill</h3>
+        <p>A natural-language workflow. Copilot picks it up automatically when your request matches. You don't call it by name.</p>
+        <p class="ex">e.g. "Convert this Word doc to a clean Excel sheet" → the docx + xlsx skills handle it.</p>
+      </div>
+      <div class="glossary-item">
+        <h3><span class="badge b-agent">agent</span> Agent</h3>
+        <p>A specialist you call by name. Has its own context, instructions, and a focused job. Like calling in a colleague.</p>
+        <p class="ex">e.g. <code>@partner-briefing</code> researches a customer before your meeting.</p>
+      </div>
+      <div class="glossary-item">
+        <h3><span class="badge b-mcp">mcp</span> MCP server</h3>
+        <p>A connector to an external system. Lets Copilot read and write to Azure, GitHub, ADO, your databases, over a standard protocol.</p>
+        <p class="ex">e.g. Azure MCP gives Copilot live access to your subscriptions and resources.</p>
+      </div>
+      <div class="glossary-item">
+        <h3><span class="badge b-instr">instruction</span> Instruction</h3>
+        <p>A reusable rules template that shapes how Copilot behaves. Voice profile, code style, governance constraints.</p>
+        <p class="ex">e.g. Partner Voice Profile keeps every email and doc on-brand.</p>
+      </div>
+      <div class="glossary-item">
+        <h3><span class="badge b-hook">hook</span> Hook</h3>
+        <p>A script that runs at a specific moment: pre-commit, post-edit, on-pull-request. Automated guardrails.</p>
+        <p class="ex">e.g. Pre-commit Secret Scan blocks accidental key commits.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2>You're set.</h2>
+    <p class="lead">Run this in PowerShell or bash. Re-run anytime to update.</p>
+    <div class="install-cmd" id="installCmd"><button class="copy-btn" id="copyBtn" onclick="copyInstall()">Copy</button><span id="installCmdText"></span></div>
+    <div class="checkout-options">
+      <button onclick="downloadSetup()" id="dlBtn">📥 Download <code>Setup.ps1</code><span class="sub">May be blocked by IT zone policy</span></button>
+      <button onclick="copyScript()" id="copyScriptBtn">📋 Copy script<span class="sub">Paste straight into PowerShell. Always works.</span></button>
+      <button onclick="saveNamedPack()" id="saveBtn">🔗 Save named pack<span class="sub">Copies a shareable URL</span></button>
+    </div>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-size:13px;color:var(--fg-weak);font-weight:500">View Setup.ps1</summary>
+      <pre class="script-preview" id="scriptPreview"></pre>
+    </details>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px;color:var(--fg-weak);font-weight:500">View manifest</summary>
+      <pre class="manifest-preview" id="manifestPreview"></pre>
+    </details>
+  </div>
+</div>
+
+<script>
+// ── Catalog ──
+// In production this would be loaded from the public registry repo.
+// Each entry's solution_area + phase + type makes the catalog filterable;
+// adding AIBS/Security items later = PR to the registry, no site change.
+// Phase tags use the delivery lifecycle from the workshop deck:
+// pre-sales · discovery · design · build · test · deploy · operate
+const CATALOG = [
+  // Cloud & AI Platforms — Microsoft built-in
+  {id:'azure-prepare', name:'azure-prepare', type:'skill', area:'cloud-ai', source:'microsoft', icon:'🔧', phases:['design','build'], desc:'Prepare Azure apps for deployment. Bicep/Terraform, azure.yaml, Dockerfiles. Built-in.', deps:[]},
+  {id:'azure-deploy', name:'azure-deploy', type:'skill', area:'cloud-ai', source:'microsoft', icon:'🚀', phases:['deploy'], desc:'Execute Azure deployments with built-in error recovery. azd up, terraform apply, az deployment.', deps:['azure-prepare']},
+  {id:'azure-validate', name:'azure-validate', type:'skill', area:'cloud-ai', source:'microsoft', icon:'✅', phases:['design','test','deploy'], desc:'Validate Azure plans and infra before deploying.', deps:[]},
+  {id:'azure-mcp', name:'Azure MCP Server', type:'mcp', area:'cloud-ai', source:'microsoft', icon:'☁️', phases:['build','deploy','operate'], desc:'Native Azure resource management: RG, ACR, AKS, Storage, Key Vault, and 40+ services.', deps:[]},
+  {id:'ado-mcp', name:'Azure DevOps MCP', type:'mcp', area:'cloud-ai', source:'microsoft', icon:'🔁', phases:['discovery','build','operate'], desc:'Manage ADO repos, pipelines, work items from CLI. Public preview.', deps:[]},
+  {id:'github-mcp', name:'GitHub MCP', type:'mcp', area:'cross', source:'microsoft', icon:'🐙', phases:['build','test','deploy','operate'], desc:'Manage repos, PRs, issues, code search across GitHub. Built-in.', deps:[]},
+  {id:'foundry-mcp', name:'Microsoft Foundry MCP', type:'mcp', area:'aibs', source:'microsoft', icon:'🤖', phases:['design','build'], desc:'Build, deploy, evaluate Foundry agents. Models, threads, knowledge indexes.', deps:[]},
+  {id:'context7', name:'Context7 docs', type:'mcp', area:'cross', source:'community', icon:'📚', phases:['design','build','test'], desc:'Up-to-date library documentation for any framework. Public, free.', deps:[]},
+
+  // vTeam-curated composition
+  {id:'azure-poc-builder', name:'Azure POC Builder', type:'agent', area:'cloud-ai', source:'vteam', icon:'⚡', phases:['build','deploy'], desc:'Orchestrates azure-prepare + azure-deploy + azure-validate to ship a POC end-to-end.', deps:['azure-prepare','azure-deploy','azure-validate','azure-mcp']},
+  {id:'partner-briefing', name:'Partner Briefing', type:'agent', area:'cross', source:'vteam', icon:'📋', phases:['pre-sales','discovery'], desc:'Auto-research a partner before a meeting. Web + GitHub + history.', deps:['github-mcp']},
+  {id:'workshop-builder', name:'Workshop Builder', type:'agent', area:'cross', source:'vteam', icon:'🎓', phases:['discovery','design'], desc:'Generate full What-The-Hack-style workshop content with progressively harder challenges.', deps:[]},
+  {id:'demo-conductor', name:'Demo Conductor', type:'agent', area:'cloud-ai', source:'vteam', icon:'🎬', phases:['pre-sales','build'], desc:'Builds end-to-end demo environments with companion script and demo guide.', deps:['azure-mcp']},
+
+  // AIBS
+  {id:'foundry-agent-skill', name:'foundry-agent', type:'skill', area:'aibs', source:'microsoft', icon:'🧠', phases:['build','test'], desc:'Deploy, evaluate, and manage Foundry agents end-to-end. Built-in.', deps:['foundry-mcp']},
+  {id:'ai-solution-architect', name:'AI Solution Architect', type:'agent', area:'aibs', source:'vteam', icon:'🏛️', phases:['design'], desc:'Design and document AI solutions on Azure with mandatory review cycles.', deps:[]},
+  {id:'ai-brainstorming', name:'AI Brainstorming', type:'agent', area:'aibs', source:'vteam', icon:'💡', phases:['pre-sales','discovery'], desc:'Research customer context and generate prioritized AI project ideas.', deps:[]},
+
+  // Security
+  {id:'azure-compliance', name:'azure-compliance', type:'skill', area:'security', source:'microsoft', icon:'🛡️', phases:['design','operate'], desc:'Compliance and security auditing. Best practices, Key Vault expiration, azqr.', deps:[]},
+  {id:'azure-rbac', name:'azure-rbac', type:'skill', area:'security', source:'microsoft', icon:'🔐', phases:['design','deploy','operate'], desc:'Manage Azure RBAC. Role assignments, permissions, scopes.', deps:['azure-mcp']},
+
+  // Cross-cutting productivity
+  {id:'pptx', name:'pptx', type:'skill', area:'cross', source:'microsoft', icon:'📊', phases:['pre-sales','discovery','design'], desc:'Read, write, and generate PowerPoint decks. Built-in.', deps:[]},
+  {id:'docx', name:'docx', type:'skill', area:'cross', source:'microsoft', icon:'📄', phases:['pre-sales','discovery','design'], desc:'Read, write, and edit Word documents. Built-in.', deps:[]},
+  {id:'xlsx', name:'xlsx', type:'skill', area:'cross', source:'microsoft', icon:'📈', phases:['discovery','operate'], desc:'Read, write, and analyze Excel files and CSVs.', deps:[]},
+  {id:'excalidraw', name:'excalidraw', type:'skill', area:'cross', source:'microsoft', icon:'✏️', phases:['design'], desc:'Generate architecture diagrams as .excalidraw files.', deps:[]},
+  {id:'content-humanizer', name:'content-humanizer', type:'skill', area:'cross', source:'vteam', icon:'✨', phases:['pre-sales','discovery'], desc:'Strip AI tells from drafts. Anti-rule-of-three, vary sentence length, etc.', deps:[]},
+  {id:'partner-voice', name:'Partner Voice Profile', type:'instruction', area:'cross', source:'vteam', icon:'🎙️', phases:['pre-sales','discovery'], desc:'Instruction template for consistent partner-facing tone and structure.', deps:[]},
+  {id:'pre-commit-secrets', name:'Pre-commit Secret Scan', type:'hook', area:'security', source:'vteam', icon:'🔒', phases:['build'], desc:'Hook that runs gitleaks before any commit. Blocks accidental secret commits.', deps:[]},
+];
+
+// Phase-based presets — one for each major phase of the delivery lifecycle.
+// Items can appear in multiple presets if they're useful in multiple phases.
+const PRESETS = {
+  pitch: ['partner-briefing','ai-brainstorming','pptx','docx','content-humanizer','partner-voice','context7'],
+  scope: ['partner-briefing','workshop-builder','ado-mcp','xlsx','docx','content-humanizer','ai-brainstorming','context7'],
+  design: ['azure-prepare','azure-validate','excalidraw','ai-solution-architect','foundry-mcp','azure-compliance','azure-rbac','context7'],
+  build: ['azure-prepare','azure-deploy','azure-validate','azure-mcp','github-mcp','ado-mcp','azure-poc-builder','foundry-agent-skill','context7','pre-commit-secrets'],
+  run: ['azure-mcp','azure-compliance','azure-rbac','ado-mcp','github-mcp','xlsx'],
+  empty: [],
+};
+
+const PHASE_LABELS = {
+  'pre-sales':'Pre-sales',
+  'discovery':'Discovery',
+  'design':'Design',
+  'build':'Build',
+  'test':'Test',
+  'deploy':'Deploy',
+  'operate':'Operate',
+};
+
+// ── State ──
+const state = {
+  cart: new Set(),
+  filterType: 'all',
+  filterPhase: 'all',
+  filterArea: 'all',
+  filterSource: 'all',
+  activePreset: null,
+  dismissedDeps: new Set(),
+};
+
+// ── Render catalog ──
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  let visible = 0;
+  CATALOG.forEach(item => {
+    if(state.filterType !== 'all' && item.type !== state.filterType) return;
+    if(state.filterPhase !== 'all' && !item.phases.includes(state.filterPhase)) return;
+    if(state.filterArea !== 'all' && item.area !== state.filterArea) return;
+    if(state.filterSource !== 'all' && item.source !== state.filterSource) return;
+    visible++;
+    const inCart = state.cart.has(item.id);
+    const card = document.createElement('div');
+    card.className = 'card' + (inCart ? ' in-cart' : '');
+    const phasePills = item.phases.map(p => `<span class="phase-pill">${PHASE_LABELS[p]}</span>`).join('');
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="card-icon">${item.icon}</span>
+        <span class="badge b-${item.type}">${item.type}</span>
+      </div>
+      <div class="card-name">${item.name}</div>
+      <div class="card-desc">${item.desc}</div>
+      <div class="card-meta">${phasePills}</div>
+      <div class="card-meta">
+        <span class="badge b-area">${areaLabel(item.area)}</span>
+        <span class="badge b-source-${sourceShort(item.source)}">${sourceLabel(item.source)}</span>
+      </div>
+      <button class="add-btn ${inCart ? 'added' : ''}" data-add="${item.id}">${inCart ? '✓ Added' : '+ Add to pack'}</button>
+    `;
+    grid.appendChild(card);
+  });
+  if(visible === 0){
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--fg-weak);font-size:14px;border:1px dashed var(--border);border-radius:14px">No items match these filters. <button onclick="clearFilters()" style="border:none;background:none;color:var(--accent-strong);cursor:pointer;font-weight:600;font-family:inherit;text-decoration:underline">Clear filters</button></div>';
+  }
+  document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    toggleCart(b.dataset.add);
+  }));
+}
+
+function clearFilters(){
+  state.filterType='all';state.filterPhase='all';state.filterArea='all';state.filterSource='all';
+  document.querySelectorAll('#filters .chip').forEach(c => {
+    c.classList.remove('active');
+    if(c.dataset.type==='all'||c.dataset.phase==='all'||c.dataset.area==='all'||c.dataset.source==='all') c.classList.add('active');
+  });
+  renderGrid();
+}
+
+function areaLabel(a){return {'cloud-ai':'Cloud & AI','aibs':'AIBS','security':'Security','cross':'Cross-cutting'}[a]||a}
+function sourceLabel(s){return {'microsoft':'Microsoft','vteam':'vTeam','community':'Community'}[s]||s}
+function sourceShort(s){return s==='microsoft'?'ms':s==='vteam'?'vteam':'comm'}
+
+// ── Cart ──
+function toggleCart(id){
+  if(state.cart.has(id)) state.cart.delete(id);
+  else state.cart.add(id);
+  state.activePreset = null;
+  document.querySelectorAll('.preset').forEach(p => p.classList.remove('active'));
+  renderGrid();
+  renderCart();
+}
+
+function renderCart(){
+  const cartBody = document.getElementById('cartBody');
+  const cartCount = document.getElementById('cartCount');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  cartCount.textContent = state.cart.size;
+  checkoutBtn.disabled = state.cart.size === 0;
+
+  if(state.cart.size === 0){
+    cartBody.innerHTML = '<div class="cart-empty">No items yet.<br>Pick a quick start above or browse the catalog.</div>';
+    return;
+  }
+
+  // Group by type
+  const groups = {skill:[],agent:[],mcp:[],instruction:[],hook:[]};
+  state.cart.forEach(id => {
+    const item = CATALOG.find(c => c.id === id);
+    if(item) groups[item.type].push(item);
+  });
+
+  const typeNames = {skill:'Skills',agent:'Agents',mcp:'MCP Servers',instruction:'Instructions',hook:'Hooks'};
+  let html = '';
+  for(const [t,items] of Object.entries(groups)){
+    if(items.length === 0) continue;
+    html += `<div class="cart-section"><h3>${typeNames[t]} (${items.length})</h3>`;
+    items.forEach(it => {
+      html += `<div class="cart-item"><span class="nm">${it.icon} ${it.name}</span><button class="rm" data-rm="${it.id}" title="Remove">✕</button></div>`;
+    });
+    html += '</div>';
+  }
+
+  // Dependency warnings
+  const missing = new Set();
+  state.cart.forEach(id => {
+    const item = CATALOG.find(c => c.id === id);
+    if(!item) return;
+    item.deps.forEach(d => {
+      if(!state.cart.has(d) && !state.dismissedDeps.has(d)) missing.add(d);
+    });
+  });
+
+  if(missing.size > 0){
+    const list = [...missing].map(d => CATALOG.find(c => c.id === d)?.name || d).join(', ');
+    const ids = [...missing].join(',');
+    html += `<div class="warn"><strong>⚠ Missing dependencies</strong>${list} ${missing.size === 1 ? 'is' : 'are'} required by your selection.<div class="warn-actions"><button class="primary" data-add-deps="${ids}">Add ${missing.size}</button><button data-skip-deps="${ids}">Skip</button></div></div>`;
+  }
+
+  cartBody.innerHTML = html;
+  document.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => toggleCart(b.dataset.rm)));
+  document.querySelectorAll('[data-add-deps]').forEach(b => b.addEventListener('click', () => {
+    b.dataset.addDeps.split(',').forEach(id => state.cart.add(id));
+    renderGrid();
+    renderCart();
+  }));
+  document.querySelectorAll('[data-skip-deps]').forEach(b => b.addEventListener('click', () => {
+    b.dataset.skipDeps.split(',').forEach(id => state.dismissedDeps.add(id));
+    renderCart();
+  }));
+}
+
+// ── Presets ──
+document.querySelectorAll('.preset').forEach(p => p.addEventListener('click', () => {
+  document.querySelectorAll('.preset').forEach(x => x.classList.remove('active'));
+  p.classList.add('active');
+  state.cart = new Set(PRESETS[p.dataset.preset]);
+  state.activePreset = p.dataset.preset;
+  state.dismissedDeps = new Set();
+  renderGrid();
+  renderCart();
+}));
+
+// ── Filter chips ──
+document.querySelectorAll('#filters .chip').forEach(c => c.addEventListener('click', () => {
+  const group = c.dataset.type !== undefined ? 'type'
+            : c.dataset.phase !== undefined ? 'phase'
+            : c.dataset.area !== undefined ? 'area'
+            : 'source';
+  document.querySelectorAll(`#filters .chip[data-${group}]`).forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  if(group === 'type') state.filterType = c.dataset.type;
+  if(group === 'phase') state.filterPhase = c.dataset.phase;
+  if(group === 'area') state.filterArea = c.dataset.area;
+  if(group === 'source') state.filterSource = c.dataset.source;
+  renderGrid();
+}));
+
+// ── Checkout ──
+document.getElementById('checkoutBtn').addEventListener('click', openModal);
+
+function openModal(){
+  const ids = [...state.cart];
+  const manifest = {
+    version: '0.1',
+    generated: new Date().toISOString(),
+    items: ids.map(id => {
+      const item = CATALOG.find(c => c.id === id);
+      return {id: item.id, type: item.type, source: item.source, area: item.area};
+    })
+  };
+  const encoded = btoa(JSON.stringify(manifest)).replace(/=+$/, '');
+  const cmd = `iwr -useb https://copilot-starter.dev/install?m=${encoded.slice(0,40)}... | iex`;
+  document.getElementById('installCmdText').textContent = cmd;
+  document.getElementById('manifestPreview').textContent = JSON.stringify(manifest, null, 2);
+  document.getElementById('scriptPreview').textContent = buildSetupPs1();
+  document.getElementById('modalBg').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modalBg').classList.remove('show')}
+
+function buildManifest(){
+  const ids = [...state.cart];
+  return {
+    version: '0.1',
+    generated: new Date().toISOString(),
+    items: ids.map(id => {
+      const item = CATALOG.find(c => c.id === id);
+      return {id: item.id, name: item.name, type: item.type, source: item.source, area: item.area};
+    })
+  };
+}
+
+function downloadSetup(){
+  const ps1 = buildSetupPs1();
+  const dateStr = new Date().toISOString().split('T')[0];
+  const blob = new Blob([ps1], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `copilot-starter-pack-${dateStr}.ps1`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  flashButton('dlBtn', '✓ Downloaded', 'May be blocked by IT zone policy');
+}
+
+function copyScript(){
+  const ps1 = buildSetupPs1();
+  navigator.clipboard.writeText(ps1);
+  flashButton('copyScriptBtn', '✓ Copied to clipboard', 'Paste straight into PowerShell. Always works.');
+}
+
+function flashButton(id, label, originalSub){
+  const b = document.getElementById(id);
+  if (!b) return;
+  const originalHTML = b.innerHTML;
+  b.classList.add('copied');
+  b.innerHTML = `${label}<span class="sub">${originalSub}</span>`;
+  setTimeout(() => {b.innerHTML = originalHTML; b.classList.remove('copied');}, 2200);
+}
+
+function buildSetupPs1(){
+  const manifest = buildManifest();
+  const items = manifest.items;
+  const skills = items.filter(i => i.type === 'skill');
+  const agents = items.filter(i => i.type === 'agent');
+  const mcps   = items.filter(i => i.type === 'mcp');
+  const hooks  = items.filter(i => i.type === 'hook');
+
+  let ps1 = `# =============================================================================
+# Copilot CLI Starter Pack — preview build
+# Generated: ${manifest.generated}
+# Selection: ${items.length} item${items.length===1?'':'s'}
+# Source:    https://jw-sthlm.github.io/frontier-consultancy-public/starter-pack/
+# =============================================================================
+#
+# THIS IS A PREVIEW.
+# The hosted install endpoint (copilot-starter.dev) is not live yet, so this
+# script does not auto-install anything. It is your readable manifest plus
+# the install snippets you would run today, by hand, to set up the same pack.
+#
+# Hand it to IT/security for review, then run the snippets you need.
+# When the registry ships, re-run the one-liner from the site to update.
+# =============================================================================
+
+$ErrorActionPreference = 'Stop'
+
+Write-Host ""
+Write-Host "Copilot CLI Starter Pack (preview)" -ForegroundColor Cyan
+Write-Host "${items.length} item${items.length===1?'':'s'} in this pack" -ForegroundColor DarkGray
+Write-Host ""
+
+# --- Embedded manifest (machine-readable) -----------------------------------
+$manifestJson = @'
+${JSON.stringify(manifest, null, 2)}
+'@
+
+`;
+
+  if (skills.length) {
+    ps1 += `# --- Skills -----------------------------------------------------------------
+# Microsoft skills marked "built-in" ship with Copilot CLI itself. No install.
+# Community/vTeam skills live as folders under ~/.copilot/skills/<name>/
+${skills.map(s => `#   - ${s.id} (${s.source})`).join('\n')}
+
+`;
+  }
+
+  if (agents.length) {
+    ps1 += `# --- Agents -----------------------------------------------------------------
+# Agents live under ~/.copilot/agents/<name>/ as a folder with agent.md + config.
+# vTeam agents will be published in the public vTeam agents repo (TBD).
+${agents.map(a => `#   - ${a.id} (${a.source})`).join('\n')}
+
+`;
+  }
+
+  if (mcps.length) {
+    ps1 += `# --- MCP servers ------------------------------------------------------------
+# MCP servers are registered in ~/.copilot/mcp-config.json.
+# Examples below. Adjust to your actual config file.
+
+# Ensure config exists
+$mcpConfig = "$HOME/.copilot/mcp-config.json"
+if (-not (Test-Path $mcpConfig)) {
+  New-Item -ItemType Directory -Force -Path (Split-Path $mcpConfig) | Out-Null
+  '{ "mcpServers": {} }' | Set-Content $mcpConfig
+}
+
+`;
+    mcps.forEach(m => {
+      const snippet = mcpSnippet(m.id);
+      ps1 += `# ${m.name} (${m.source})\n${snippet}\n`;
+    });
+    ps1 += `\n`;
+  }
+
+  if (hooks.length) {
+    ps1 += `# --- Hooks ------------------------------------------------------------------
+# Hooks live under ~/.copilot/hooks/<event>/<name>.ps1 (or .sh).
+${hooks.map(h => `#   - ${h.id} (${h.source})`).join('\n')}
+
+`;
+  }
+
+  ps1 += `# --- Done -------------------------------------------------------------------
+Write-Host "Done. Restart Copilot CLI to pick up MCP changes." -ForegroundColor Green
+Write-Host ""
+Write-Host "Next:"
+Write-Host "  - copilot --help                     (verify install)"
+Write-Host "  - copilot mcp list                   (verify MCP servers)"
+Write-Host "  - copilot 'list my available skills' (verify skills)"
+Write-Host ""
+`;
+
+  return ps1;
+}
+
+function mcpSnippet(id){
+  const map = {
+    'azure-mcp':    `# npx-launched, official Microsoft\n# Add to mcpServers: { "azure": { "command": "npx", "args": ["-y", "@azure/mcp@latest"] } }`,
+    'github-mcp':   `# Hosted MCP, official GitHub\n# Add to mcpServers: { "github": { "url": "https://api.githubcopilot.com/mcp/" } }`,
+    'ado-mcp':      `# Public preview, official Microsoft\n# Add to mcpServers: { "ado": { "command": "npx", "args": ["-y", "@azure-devops/mcp@latest"] } }`,
+    'foundry-mcp':  `# Foundry MCP, official Microsoft\n# Add to mcpServers: { "foundry": { "command": "npx", "args": ["-y", "@microsoft/foundry-mcp@latest"] } }`,
+    'context7':     `# Community, free docs lookup\n# Add to mcpServers: { "context7": { "command": "npx", "args": ["-y", "@upstash/context7-mcp@latest"] } }`,
+  };
+  return map[id] || `# Snippet pending. See registry entry for ${id}.`;
+}
+
+function saveNamedPack(){
+  const manifest = buildManifest();
+  const encoded = btoa(JSON.stringify(manifest)).replace(/=+$/, '');
+  const url = `${location.origin}${location.pathname}#m=${encoded}`;
+  navigator.clipboard.writeText(url);
+  flashButton('saveBtn', '✓ URL copied', 'Paste anywhere to share this pack');
+}
+
+function rehydrateFromHash(){
+  const m = location.hash.match(/m=([A-Za-z0-9+/=_-]+)/);
+  if (!m) return;
+  try {
+    const json = atob(m[1]);
+    const manifest = JSON.parse(json);
+    const ids = manifest.items.map(i => i.id).filter(id => CATALOG.some(c => c.id === id));
+    if (ids.length) {
+      state.cart = new Set(ids);
+    }
+  } catch(e) { console.warn('Could not restore pack from URL:', e); }
+}
+
+function copyInstall(){
+  const txt = document.getElementById('installCmdText').textContent;
+  navigator.clipboard.writeText(txt);
+  const b = document.getElementById('copyBtn');
+  b.textContent = 'Copied ✓';
+  b.classList.add('copied');
+  setTimeout(() => {b.textContent = 'Copy';b.classList.remove('copied')}, 1800);
+}
+
+function openGlossary(){document.getElementById('glossaryBg').classList.add('show')}
+function closeGlossary(){document.getElementById('glossaryBg').classList.remove('show')}
+
+document.getElementById('glossaryBg').addEventListener('click', e => {
+  if(e.target === document.getElementById('glossaryBg')) closeGlossary();
+});
+
+document.getElementById('modalBg').addEventListener('click', e => {
+  if(e.target === document.getElementById('modalBg')) closeModal();
+});
+
+// ── Init ──
+rehydrateFromHash();
+renderGrid();
+renderCart();
+</script>
+</body>
+</html>

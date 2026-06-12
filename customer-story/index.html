@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer story · Frontier Consultancy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:          #0f0f1a;
+  --ink-soft:     #2a2a3a;
+  --paper:        #ffffff;
+  --paper-soft:   #fafbfd;
+  --muted:        #5a5a6e;
+  --line:         #e3e6ee;
+  --line-strong:  #cbd0dd;
+
+  --hero-grad:    linear-gradient(135deg, #221a5b 0%, #4f2db5 45%, #8a2bc4 100%);
+  --accent:       #c850c0;
+  --accent-blue:  #1a86e0;
+  --accent-purple:#6a3cc7;
+  --accent-grad:  linear-gradient(90deg, #1a86e0 0%, #6a3cc7 50%, #c850c0 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: #0a0820;
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: none;
+  padding: 56px 80px 72px;
+  flex-direction: column;
+}
+.slide.active { display: flex; }
+
+.slide.dark   { background: var(--hero-grad);                                  color: #ffffff; }
+.slide.light  { background: var(--paper);                                      color: var(--ink); }
+.slide.tinted {
+  background:
+    radial-gradient(ellipse at top left, rgba(138, 43, 196, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(26, 134, 224, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, #0d0b22 0%, #14123a 100%);
+  color: #ffffff;
+}
+
+.slide.dark::after,
+.slide.tinted::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px; background: var(--accent-grad);
+}
+
+.eyebrow {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 18px;
+  opacity: 0.78;
+}
+.slide.light  .eyebrow { color: var(--accent-purple); opacity: 1; }
+.slide.tinted .eyebrow { color: var(--accent);        opacity: 1; }
+
+h2 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: clamp(34px, 3.6vw, 50px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin-bottom: 16px;
+  max-width: 26ch;
+}
+
+.lead {
+  font-size: 19px;
+  line-height: 1.55;
+  max-width: 70ch;
+  text-wrap: pretty;
+  opacity: 0.92;
+  margin-bottom: 28px;
+}
+.slide.dark   .lead { opacity: 0.86; }
+.slide.light  .lead { color: var(--ink-soft); }
+.slide.tinted .lead { color: rgba(255,255,255,0.86); }
+
+.slide.tinted .fleet-band-label { color: rgba(255,255,255,0.55); }
+.slide.tinted .lead-pill {
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #ffffff;
+}
+.slide.tinted .agent-chip {
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.16);
+  color: #ffffff;
+}
+.slide.tinted .connector {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.28) 1.5px, transparent 1.5px);
+}
+.slide.tinted .slide-footer { color: rgba(255,255,255,0.55); }
+
+/* ── Slide 1: comparison ────────────────────────── */
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  align-items: stretch;
+  gap: 0;
+  margin: auto 0;
+}
+.col-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 26px 30px;
+}
+.col-card.dim { opacity: 0.62; }
+.col-card.accent {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(200,80,192,0.55);
+  box-shadow:
+    0 0 0 1px rgba(200,80,192,0.25) inset,
+    0 18px 50px rgba(138,43,196,0.25);
+}
+.col-card h3 {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: rgba(255,255,255,0.7);
+}
+.col-card.accent h3 { color: var(--accent); }
+.col-card ul { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.col-card li {
+  font-size: 16px;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.col-card li::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.55;
+  margin-top: 9px; flex-shrink: 0;
+}
+.col-card.accent li::before { background: var(--accent); opacity: 1; }
+.col-card li b { font-weight: 700; }
+.vs {
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.4);
+}
+
+/* ── Slide 2: fleet diagram ─────────────────────── */
+.fleet {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.fleet-band {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 22px;
+}
+.fleet-band-label {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--muted);
+  text-align: right;
+}
+.lead-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: var(--ink);
+  color: #ffffff;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 17px;
+  width: fit-content;
+}
+.lead-pill .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+
+.agent-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.agent-chip {
+  padding: 11px 16px;
+  background: var(--paper-soft);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.azure-row { display: flex; gap: 7px; flex-wrap: wrap; }
+.az-chip {
+  padding: 9px 14px;
+  background: linear-gradient(135deg, #1a86e0, #6a3cc7);
+  color: #ffffff;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.connector-band {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 22px;
+}
+.connector {
+  grid-column: 2;
+  height: 22px;
+  background-image: radial-gradient(circle, var(--line-strong) 1.5px, transparent 1.5px);
+  background-size: 9px 9px;
+  background-position: center;
+  background-repeat: repeat-x;
+}
+
+/* ── Slide 3: timeline + revenue ────────────────── */
+.shift-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: auto 0;
+}
+.timeline {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  align-items: stretch;
+}
+.timeline-build, .timeline-operate {
+  padding: 22px 26px;
+  position: relative;
+}
+.timeline-build {
+  background: rgba(200,80,192,0.18);
+  border: 1px solid rgba(200,80,192,0.45);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+}
+.timeline-operate {
+  background: rgba(26,134,224,0.18);
+  border: 1px solid rgba(26,134,224,0.45);
+  border-radius: 0 12px 12px 0;
+}
+.timeline-label {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+.timeline-title {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.timeline-body {
+  font-size: 14.5px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.revenue { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.rev-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.rev-card.highlight {
+  background: rgba(200,80,192,0.16);
+  border-color: rgba(200,80,192,0.5);
+}
+.rev-card .label {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.78;
+  margin-bottom: 6px;
+}
+.rev-card .v {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 19px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.rev-card .rev-body {
+  font-size: 13.5px;
+  line-height: 1.45;
+  opacity: 0.78;
+}
+
+.rev-summary {
+  margin-top: 18px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  max-width: 80ch;
+  opacity: 0.78;
+  text-wrap: pretty;
+}
+.rev-summary b { font-weight: 700; opacity: 1; }
+
+/* ── Takeaway CTA ───────────────────────────────── */
+.takeaway-band {
+  margin-top: 22px;
+  padding: 14px 22px;
+  background: rgba(200, 80, 192, 0.10);
+  border: 1px solid rgba(200, 80, 192, 0.32);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  max-width: 90%;
+}
+.slide.dark .takeaway-band,
+.slide.tinted .takeaway-band {
+  color: #ffffff;
+}
+.takeaway-band .takeaway-text {
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.takeaway-band .takeaway-text b {
+  font-weight: 700;
+}
+.takeaway-band .takeaway-cta {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ── Footer + nav ───────────────────────────────── */
+.slide-footer {
+  position: absolute;
+  left: 80px; right: 80px; bottom: 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.slide.light .slide-footer { color: var(--muted); }
+.slide.dark  .slide-footer { color: rgba(255,255,255,0.55); }
+
+.deck-nav {
+  position: fixed;
+  right: 24px; bottom: 24px;
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  padding: 5px 6px;
+  z-index: 100;
+}
+.deck-nav button {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.deck-nav button:hover { background: rgba(255,255,255,0.15); }
+.deck-counter {
+  color: #ffffff;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* Print: one slide per page */
+@media print {
+  @page { size: 1400px 800px; margin: 0; }
+  body, html { background: #ffffff; height: auto; overflow: visible; }
+  .deck { height: auto; }
+  .deck-nav { display: none; }
+  .slide {
+    display: flex !important;
+    position: relative;
+    width: 1400px; height: 800px;
+    page-break-after: always;
+  }
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ── SLIDE 1: The thesis ────────────────────── -->
+  <section class="slide dark active" data-slide="1">
+    <div class="eyebrow">The new shape of delivery</div>
+    <h2>With agents, you don't staff projects. You steer a fleet.</h2>
+    <p class="lead">A customer needs a full Azure data platform. Subscription, identity, warehouse, integrations, dashboards. The old shape was six to nine months and a team of consultants. The new shape looks like this.</p>
+
+    <div class="compare">
+      <div class="col-card dim">
+        <h3>Old way</h3>
+        <ul>
+          <li><b>6 to 9 months</b> end to end</li>
+          <li>3 to 5 consultants on the engagement</li>
+          <li>Six-figure delivery budget</li>
+          <li>Ends at hand-off</li>
+          <li>Customer maintains the platform after</li>
+        </ul>
+      </div>
+      <div class="vs">vs</div>
+      <div class="col-card accent">
+        <h3>New way</h3>
+        <ul>
+          <li><b>About one week</b> to production</li>
+          <li>1 delivery lead, fleet of specialist agents</li>
+          <li>A fraction of the cost</li>
+          <li>Doesn't end at hand-off</li>
+          <li><b>Build AND operate.</b> Agents stay on to run it</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Frontier Consultancy · Customer story</span>
+      <span>1 / 3</span>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 2: Inside the fleet ──────────────── -->
+  <section class="slide tinted" data-slide="2">
+    <div class="eyebrow">Inside the fleet</div>
+    <h2>One lead. A fleet of specialist agents.</h2>
+    <p class="lead">The lead frames the outcome with the customer and briefs the fleet. Specialist agents stand up the platform across architecture, infrastructure, code, data, integrations, and operations. Smart model routing handles the cost. Lightweight models for roughly 80% of operations. Frontier models for the decisions that really matter.</p>
+
+    <div class="fleet">
+      <div class="fleet-band">
+        <div class="fleet-band-label">Direction</div>
+        <div><div class="lead-pill"><span class="dot"></span>Delivery lead</div></div>
+      </div>
+      <div class="connector-band"><div class="connector"></div></div>
+      <div class="fleet-band">
+        <div class="fleet-band-label">Specialist agents</div>
+        <div class="agent-row">
+          <div class="agent-chip">Architecture</div>
+          <div class="agent-chip">Infrastructure</div>
+          <div class="agent-chip">Code</div>
+          <div class="agent-chip">Data</div>
+          <div class="agent-chip">Integrations</div>
+          <div class="agent-chip">CRM</div>
+          <div class="agent-chip">Operations</div>
+        </div>
+      </div>
+      <div class="connector-band"><div class="connector"></div></div>
+      <div class="fleet-band">
+        <div class="fleet-band-label">Azure platform</div>
+        <div class="azure-row">
+          <div class="az-chip">Subscription</div>
+          <div class="az-chip">Entra ID</div>
+          <div class="az-chip">Key Vault</div>
+          <div class="az-chip">SQL warehouse</div>
+          <div class="az-chip">Data Factory</div>
+          <div class="az-chip">Functions</div>
+          <div class="az-chip">App Service</div>
+          <div class="az-chip">OpenAI Service</div>
+          <div class="az-chip">Dashboards</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Frontier Consultancy · Customer story</span>
+      <span>2 / 3</span>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 3: The reveal ────────────────────── -->
+  <section class="slide dark" data-slide="3">
+    <div class="eyebrow">Not a future state</div>
+    <h2>A Microsoft partner shipped exactly this. <span style="color: var(--accent);">Earlier this year.</span></h2>
+    <p class="lead">Mid-market customer. One delivery lead. Roughly seven days from zero to production. A full Azure data platform with a dozen-plus integrations and an executive dashboard. After go-live the same agents stayed on. <b>Build AND operate.</b></p>
+
+    <div class="shift-grid">
+      <div class="timeline">
+        <div class="timeline-build">
+          <div class="timeline-label">Week 1</div>
+          <div class="timeline-title">Build</div>
+          <div class="timeline-body">Lead steered. Agents stood up subscription, identity, data layer, integrations, app surface, and dashboards. Customer ready in days.</div>
+        </div>
+        <div class="timeline-operate">
+          <div class="timeline-label">Week 2 onwards &nbsp;&rarr;</div>
+          <div class="timeline-title">Operate</div>
+          <div class="timeline-body">Same fleet kept running the platform. Watching integration health. Refreshing dashboards. Self-healing on upstream API changes.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="revenue">
+          <div class="rev-card">
+            <div class="label">Projects · time</div>
+            <div class="v">Compressed build fee</div>
+            <div class="rev-body">The build week, billed. Days instead of months. Still a fee for hours, but the hours collapse.</div>
+          </div>
+          <div class="rev-card">
+            <div class="label">Kickers · outcome</div>
+            <div class="v">Paid on results</div>
+            <div class="rev-body">Bonuses tied to customer KPIs. Partner shares the upside of what the platform delivers.</div>
+          </div>
+          <div class="rev-card highlight">
+            <div class="label">Subscription · IP</div>
+            <div class="v">Recurring on operate</div>
+            <div class="rev-body">The fleet keeps running the platform. Monthly stream. The partner's IP earns while it runs.</div>
+          </div>
+        </div>
+        <p class="rev-summary">A new delivery model unlocks a new business model. Value allocates over time instead of front-loading at sign-off, and inside a year the recurring stream often outsizes the build fee.</p>
+      </div>
+    </div>
+
+    <div class="takeaway-band">
+      <div class="takeaway-text">If this is the practice you want to build, that's the conversation to have with your Microsoft team. <b>Faster builds. Outcome-tied pricing. IP that earns while it runs.</b></div>
+      <div class="takeaway-cta">Start the conversation &rarr;</div>
+    </div>
+
+    <div class="slide-footer">
+      <span>Frontier Consultancy · Anonymized partner case</span>
+      <span>3 / 3</span>
+    </div>
+  </section>
+
+</div>
+
+<nav class="deck-nav" aria-label="slide navigation">
+  <button id="prev" aria-label="previous slide">&#8592;</button>
+  <span class="deck-counter"><span id="cur">1</span> / 3</span>
+  <button id="next" aria-label="next slide">&#8594;</button>
+</nav>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const cur    = document.getElementById('cur');
+  let i = 0;
+  function show(n) {
+    i = (n + slides.length) % slides.length;
+    slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    cur.textContent = i + 1;
+  }
+  document.getElementById('prev').addEventListener('click', () => show(i - 1));
+  document.getElementById('next').addEventListener('click', () => show(i + 1));
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp')                 { show(i - 1); e.preventDefault(); }
+    else if (e.key === 'Home')                                            { show(0); }
+    else if (e.key === 'End')                                             { show(slides.length - 1); }
+  });
+})();
+</script>
+</body>
+</html>
