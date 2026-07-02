@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Frontier Consultancy</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Frontier Consultancy page redirect.">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0a0b0e;
+      color: #e5e7eb;
+      padding: 4rem 2rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    a { color: #00d4ff; }
+  </style>
+</head>
+<body>
+  <h1>Frontier Consultancy</h1>
+  <p id="msg">Redirecting to <a href="/partners/">/partners/</a>.</p>
+  <script>
+    (function () {
+      var map = {
+        "/organizing": "/partners/organizing/",
+        "/organizing/": "/partners/organizing/",
+        "/partner-overview": "/partners/overview/",
+        "/partner-overview/": "/partners/overview/",
+        "/partner-overview/one-pager.pdf": "/partners/overview/one-pager.pdf",
+        "/customer-story": "/partners/customer-story/",
+        "/customer-story/": "/partners/customer-story/",
+        "/starter-pack": "/partners/starter-pack/",
+        "/starter-pack/": "/partners/starter-pack/",
+        "/c-level-deck": "/partners/c-level-deck/",
+        "/c-level-deck/": "/partners/c-level-deck/",
+        "/c-level-deck/v1.html": "/partners/c-level-deck/v1.html",
+        "/m365-copilot-adoption": "/partners/resources/m365-copilot-adoption/index.md",
+        "/m365-copilot-adoption/": "/partners/resources/m365-copilot-adoption/index.md"
+      };
+
+      var target = map[window.location.pathname] || "/partners/";
+      var msg = document.getElementById("msg");
+      msg.innerHTML = 'Redirecting to <a href="' + target + '">' + target + "</a>.";
+      window.location.replace(target + window.location.search + window.location.hash);
+    })();
+  </script>
+</body>
+</html>

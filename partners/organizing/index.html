@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frontier Consultancy · Organizing as an AI-first partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080a;
+  --bg-card:rgba(255,255,255,.03);
+  --bg-elevated:rgba(255,255,255,.05);
+  --fg:#f0f1f3;
+  --fg-soft:rgba(240,241,243,.78);
+  --fg-weak:rgba(240,241,243,.55);
+  --fg-faint:rgba(240,241,243,.35);
+  --line:rgba(255,255,255,.08);
+  --line-strong:rgba(255,255,255,.14);
+  --aurora-cyan:#22d3ee;
+  --aurora-purple:#a78bfa;
+  --aurora-pink:#f472b6;
+  --aurora:linear-gradient(135deg,var(--aurora-cyan) 0%,var(--aurora-purple) 50%,var(--aurora-pink) 100%);
+  --status-live:#34d399;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.55;min-height:100vh;
+  overflow-x:hidden;position:relative;
+}
+body::before,body::after{
+  content:'';position:fixed;width:55vw;height:55vw;border-radius:50%;
+  filter:blur(140px);opacity:.18;pointer-events:none;z-index:0;
+}
+body::before{background:var(--aurora-cyan);top:-20vw;right:-15vw}
+body::after{background:var(--aurora-pink);bottom:-25vw;left:-15vw}
+main{position:relative;z-index:1}
+.container{max-width:1180px;margin:0 auto;padding:0 clamp(24px,5vw,56px)}
+
+.topnav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px clamp(24px,5vw,56px);max-width:1180px;margin:0 auto;position:relative;z-index:2;
+}
+.topnav-brand{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.01em}
+.topnav-brand span{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.topnav-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--fg-weak)}
+
+/* Hero */
+.hero{padding-top:72px;padding-bottom:56px}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--fg-weak);margin-bottom:20px}
+.hero h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(40px,5.5vw,68px);
+  line-height:.98;font-weight:900;letter-spacing:-.035em;
+  text-wrap:balance;max-width:18ch;margin-bottom:24px;
+}
+.hero h1 .accent{
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero .lead{font-size:19px;line-height:1.55;max-width:58ch;color:var(--fg-soft);text-wrap:pretty}
+
+/* Stats */
+.stat-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:20px;margin-top:48px;
+}
+.stat-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:16px;padding:28px 24px;
+}
+.stat-card .num{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1;
+  margin-bottom:10px;
+  background:var(--aurora);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-card .label{font-size:14px;color:var(--fg-soft);line-height:1.5}
+.stat-source{font-size:12px;color:var(--fg-faint);margin-top:16px}
+.stat-source a{color:var(--fg-weak);text-decoration:none}
+.stat-source a:hover{color:var(--fg-soft)}
+
+/* Sections */
+.section{padding-top:56px;padding-bottom:56px}
+.section-eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--fg-weak);margin-bottom:14px}
+.section h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(28px,3vw,40px);
+  line-height:1.15;font-weight:800;letter-spacing:-.015em;
+  text-wrap:balance;margin-bottom:16px;
+}
+.section-lead{font-size:17px;color:var(--fg-soft);max-width:62ch;text-wrap:pretty;margin-bottom:0}
+.section p{font-size:15px;color:var(--fg-soft);line-height:1.6;margin-bottom:12px}
+.section p:last-child{margin-bottom:0}
+.ms-link{font-size:13px;color:var(--aurora-purple);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-top:8px}
+.ms-link:hover{color:var(--aurora-cyan)}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--line);margin:0}
+
+/* Five pillars grid */
+.pillar-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:16px;margin-top:36px;
+}
+.pillar-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:16px;padding:28px 20px 24px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.pillar-card:hover{border-color:var(--line-strong)}
+.pillar-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--aurora);opacity:.5;
+}
+.pillar-num{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--fg-faint);margin-bottom:20px;
+}
+.pillar-icon{font-size:26px;margin-bottom:14px}
+.pillar-card h4{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;font-weight:800;letter-spacing:-.01em;
+  color:var(--fg);margin-bottom:8px;line-height:1.2;
+}
+.pillar-card p{font-size:13px;color:var(--fg-weak);line-height:1.5;margin:0}
+
+/* Numbered list */
+.step-list{list-style:none;padding:0;margin-top:28px;display:flex;flex-direction:column;gap:16px}
+.step-list li{
+  display:grid;grid-template-columns:36px 1fr;gap:16px;align-items:start;
+}
+.step-num{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-elevated);border:1px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;
+  color:var(--aurora-purple);flex-shrink:0;
+}
+.step-body b{display:block;font-size:15px;font-weight:700;color:var(--fg);margin-bottom:4px}
+.step-body span{font-size:14px;color:var(--fg-soft);line-height:1.5}
+
+/* Responsibility grid */
+.resp-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:16px;margin-top:32px;
+}
+.resp-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:16px;padding:22px 20px;
+  transition:border-color .2s;
+}
+.resp-card:hover{border-color:var(--line-strong)}
+.resp-icon{font-size:22px;margin-bottom:10px}
+.resp-card h4{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;font-weight:800;letter-spacing:-.01em;
+  color:var(--fg);margin-bottom:6px;
+}
+.resp-card p{font-size:13px;color:var(--fg-weak);line-height:1.5;margin:0}
+
+/* Evolution strip */
+.evo-strip{
+  background:var(--bg-card);border:1px solid var(--line);
+  border-radius:20px;padding:36px;margin-top:32px;
+}
+.evo-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
+.evo-cols::before{
+  content:'';position:absolute;top:18px;left:calc(33.33% + 12px);right:calc(33.33% + 12px);
+  height:1px;background:linear-gradient(90deg,var(--aurora-purple),var(--aurora-pink));
+  opacity:.4;
+}
+.evo-col{padding:0}
+.evo-stage{
+  font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--aurora-purple);margin-bottom:10px;display:flex;align-items:center;gap:8px;
+}
+.evo-stage::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--aurora-purple);flex-shrink:0;
+  box-shadow:0 0 10px var(--aurora-purple);
+}
+.evo-col h4{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:17px;font-weight:800;letter-spacing:-.01em;
+  color:var(--fg);margin-bottom:8px;
+}
+.evo-col p{font-size:13.5px;color:var(--fg-soft);line-height:1.55}
+
+/* Practical steps */
+.next-list{list-style:none;padding:0;margin-top:24px;display:flex;flex-direction:column;gap:12px}
+.next-list li{
+  display:flex;align-items:flex-start;gap:12px;
+  font-size:15px;color:var(--fg-soft);line-height:1.5;
+}
+.next-list li::before{
+  content:'→';color:var(--aurora-purple);font-weight:700;
+  flex-shrink:0;margin-top:1px;
+}
+
+/* Footer */
+footer{border-top:1px solid var(--line);padding:32px 0;margin-top:0}
+footer .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--fg-weak)}
+footer a{color:var(--fg-soft);text-decoration:none}
+footer a:hover{color:var(--fg)}
+
+@media(max-width:1100px){
+  .pillar-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:900px){
+  .stat-row{grid-template-columns:1fr}
+  .pillar-grid{grid-template-columns:repeat(2,1fr)}
+  .resp-grid{grid-template-columns:1fr}
+  .evo-cols{grid-template-columns:1fr;gap:20px}
+  .evo-cols::before{display:none}
+}
+@media(max-width:720px){
+  .container,.topnav{padding-left:20px;padding-right:20px}
+  .hero{padding:48px 0 32px}
+  .pillar-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-brand"><span>Frontier Consultancy</span></div>
+  <div class="topnav-tag">Partner Guidance</div>
+</nav>
+
+<main>
+
+  <!-- Hero -->
+  <section class="hero container">
+    <div class="eyebrow">Frontier Consultancy · Partner Guidance</div>
+    <h1>Organizing as an <span class="accent">AI-first partner</span></h1>
+    <p class="lead">Delivering AI-first projects is not only a skills question. It is an organizational question. Partners who build durable AI delivery capacity put a deliberate internal structure behind it — a team, a governance model, and a practice that evolves as AI adoption matures.</p>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="num">3×</div>
+        <div class="label">Better ROI for partners who adopt AI across multiple delivery functions</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">7</div>
+        <div class="label">Business functions where leading AI-first firms apply AI on average</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">67%</div>
+        <div class="label">Of "Frontier Firms" have monetized AI use cases tailored to their sector</div>
+      </div>
+    </div>
+    <div class="stat-source">IDC study commissioned by Microsoft, November 2025 · <a href="https://www.microsoft.com/en-us/microsoft-cloud/blog/2025/12/11/becoming-a-frontier-firm-unlocking-the-business-value-of-ai/" target="_blank">Becoming a Frontier Firm →</a></div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Five pillars of AI value -->
+  <section class="section container">
+    <div class="section-eyebrow">Microsoft AI Transformation for Partners</div>
+    <h2>Five pillars of AI value</h2>
+    <p class="section-lead">Sustainable AI value requires investment across five dimensions. Partners who make progress across all five — not just technology — are the ones who build durable delivery capacity and lasting customer trust.</p>
+
+    <div class="pillar-grid">
+      <div class="pillar-card">
+        <div class="pillar-num">01</div>
+        <div class="pillar-icon">🎯</div>
+        <h4>Business Strategy</h4>
+        <p>Align AI initiatives to measurable business outcomes. Define which problems AI should solve and how success is measured before selecting tools.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">02</div>
+        <div class="pillar-icon">🏗️</div>
+        <h4>Technology &amp; Data Strategy</h4>
+        <p>Build a scalable foundation. Data quality, platform architecture, and integration design determine whether AI delivers at scale or stays a prototype.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">03</div>
+        <div class="pillar-icon">✨</div>
+        <h4>AI Strategy &amp; Experience</h4>
+        <p>Turn individual AI experiments into repeatable value creation. Define the AI use case portfolio, the delivery methodology, and the partner economics model.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">04</div>
+        <div class="pillar-icon">👥</div>
+        <h4>Organization &amp; Culture</h4>
+        <p>Adoption lives or dies in culture. Skill development, change management, and leadership buy-in determine whether AI becomes embedded in delivery or fades after the pilot.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-num">05</div>
+        <div class="pillar-icon">🛡️</div>
+        <h4>AI Governance &amp; Security</h4>
+        <p>Build trust through responsible AI practices. Policy, compliance, security standards, and bias reviews are the foundation that allows partners to deliver AI to regulated customers.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- What is an AI CoE -->
+  <section class="section container">
+    <div class="section-eyebrow">The foundation</div>
+    <h2>What is an AI Center of Excellence?</h2>
+    <p>An AI Center of Excellence (AI CoE) is an internal team of experts who drive successful and valuable AI outcomes across your organization. It prevents fragmented or ungoverned AI adoption and provides business and technical consultation that supports successful AI integration.</p>
+    <p>For a consulting partner, the AI CoE serves a dual purpose: it governs AI adoption <strong>internally</strong>, and it becomes the delivery engine that brings AI-first methodology to <strong>customer engagements</strong>. The five pillars above map directly to what a well-run AI CoE owns and drives.</p>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+      <a class="ms-link" style="margin-top:0" href="https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/center-of-excellence" target="_blank">
+        AI Center of Excellence — Microsoft Cloud Adoption Framework →
+      </a>
+      <a class="ms-link" style="margin-top:0" href="https://info.microsoft.com/ww-landing-implementing-a-center-of-excellence-for-generative-ai.html" target="_blank">
+        Implementing an AI Center of Excellence — Microsoft e-book →
+      </a>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- 5 steps -->
+  <section class="section container">
+    <div class="section-eyebrow">Getting started</div>
+    <h2>Five steps to build your AI CoE</h2>
+    <ul class="step-list">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <b>Secure executive sponsorship</b>
+          <span>Form a steering committee with both business and technical leadership. An AI CoE without executive buy-in stalls within two quarters.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <b>Appoint an AI CoE leader</b>
+          <span>A single point of contact for AI strategy and governance. This person owns the roadmap and the relationship with Microsoft.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <b>Assemble a multidisciplinary team</b>
+          <span>Data scientists, AI engineers, governance experts, AI security specialists, and AI operations professionals — not just developers.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <b>Determine organizational placement</b>
+          <span>If you already run a Cloud Center of Excellence, integrate AI practices into it. Only stand up a standalone AI team if existing teams cannot support the motion.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <b>Define your operating model</b>
+          <span>Centralized at early stage. Advisory as maturity grows. Plan the transition from the start.</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <hr class="divider">
+
+  <!-- 8 responsibility areas -->
+  <section class="section container">
+    <div class="section-eyebrow">What the AI CoE owns</div>
+    <h2>Eight responsibility areas</h2>
+    <p class="section-lead">Microsoft's Cloud Adoption Framework defines eight domains an AI CoE is accountable for. In a partner context, these map directly to your delivery practice and your customer engagements.</p>
+    <div class="resp-grid">
+      <div class="resp-card">
+        <div class="resp-icon">🎯</div>
+        <h4>Define AI strategy</h4>
+        <p>Use case identification, AI decision tree, responsible AI strategy. Sets the direction across all practices.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">🎓</div>
+        <h4>Develop AI skills</h4>
+        <p>Skills assessments, learning pathways, and safe experimentation environments. Frontier Consultancy tracks map directly here.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">🚀</div>
+        <h4>Lead pilot projects</h4>
+        <p>Proof-of-concept creation and business value validation before scaling. The customer-zero motion is your pilot engine.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">🛡️</div>
+        <h4>Define and enforce AI standards</h4>
+        <p>Governance policies, security standards, bias reviews, compliance audits. Non-negotiable before customer delivery.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">📋</div>
+        <h4>Intake and prioritization</h4>
+        <p>Structured process for evaluating which AI projects to run and in what order. Prevents ad hoc proliferation.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">🔁</div>
+        <h4>Develop reusable assets</h4>
+        <p>Compliance checklists, internal platforms, agent templates, code repositories. Every customer engagement generates IP.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">📊</div>
+        <h4>Measure and report outcomes</h4>
+        <p>KPIs: adoption rates, compliance levels, project cycle times, AI-attributed revenue. Makes the CoE accountable.</p>
+      </div>
+      <div class="resp-card">
+        <div class="resp-icon">⚙️</div>
+        <h4>Manage AI services</h4>
+        <p>Deploy, govern, and monitor AI services and models. Relevant once you operate AI platforms for customers.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Evolution model -->
+  <section class="section container">
+    <div class="section-eyebrow">Maturity model</div>
+    <h2>How your AI CoE evolves over time</h2>
+    <p class="section-lead">Replace the CoE gatekeeper model that blocks work with an advisory group that sets guardrails. Distribute AI expertise into product teams, platform teams, and enabling teams.</p>
+    <div class="evo-strip">
+      <div class="evo-cols">
+        <div class="evo-col">
+          <div class="evo-stage">Stage 1 · Early</div>
+          <h4>Centralized control</h4>
+          <p>The CoE owns all AI decisions. Governs standards, approves use cases, runs pilots. Appropriate when AI skills are concentrated in a small team.</p>
+        </div>
+        <div class="evo-col">
+          <div class="evo-stage">Stage 2 · Growing</div>
+          <h4>Guided federation</h4>
+          <p>Delivery practices build their own AI capability. The CoE sets guardrails, reviews decisions, and provides tooling. Expertise starts to distribute.</p>
+        </div>
+        <div class="evo-col">
+          <div class="evo-stage">Stage 3 · Mature</div>
+          <h4>Advisory model</h4>
+          <p>AI expertise lives inside product and delivery teams. The CoE shifts from gatekeeper to enabler — setting standards, not blocking work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- Practical next steps -->
+  <section class="section container">
+    <div class="section-eyebrow">Practical next steps</div>
+    <h2>From workshop to AI CoE in five moves.</h2>
+    <ul class="next-list">
+      <li>Attend a Frontier Consultancy workshop — your team builds the first artifacts.</li>
+      <li>Identify your AI CoE leader and executive sponsor before the workshop ends.</li>
+      <li>Use the customer-zero project as your first governed AI pilot.</li>
+      <li>Capture reusable assets from co-delivery into your CoE asset library.</li>
+      <li>Evolve from centralized control to advisory as your second cohort completes training.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <span>Frontier Consultancy · AI-First Delivery for Partner Consulting Teams · Microsoft EMEA · 2026</span>
+    <a href="https://github.com/JW-Sthlm/frontier-consultancy-public">View on GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>

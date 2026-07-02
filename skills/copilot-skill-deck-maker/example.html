@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deck maker example</title>
+<style>
+:root{--bg:#07111f;--surface:#0d1b2f;--fg:#f7fbff;--muted:#a9b8ca;--line:rgba(255,255,255,.14);--accent:#22d3ee;--accent-2:#f59e0b;--accent-soft:rgba(34,211,238,.15);--font-display:"Segoe UI",Aptos,Arial,sans-serif;--font-body:"Segoe UI",Aptos,Arial,sans-serif}*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--font-body);overflow:hidden}body{background:radial-gradient(circle at 20% 12%,var(--accent-soft),transparent 32%),radial-gradient(circle at 88% 80%,rgba(245,158,11,.12),transparent 28%),var(--bg)}.stage{width:100vw;height:100vh;display:grid;place-items:center;overflow:hidden}.deck{width:min(100vw,calc(100vh * 16 / 9));height:min(100vh,calc(100vw * 9 / 16));position:relative;overflow:hidden;background:linear-gradient(135deg,#07111f,#0a1528);box-shadow:0 24px 80px rgba(0,0,0,.38)}.slide{position:absolute;inset:0;padding:6vmin 7vmin;display:flex;flex-direction:column;justify-content:center;gap:3vmin;opacity:0;transform:translateX(2%);transition:opacity .28s ease,transform .28s ease;pointer-events:none}.slide.active{opacity:1;transform:none;pointer-events:auto}.eyebrow{display:inline-flex;align-self:flex-start;border:1px solid rgba(34,211,238,.35);border-radius:999px;padding:.45rem .75rem;color:var(--accent);font:700 clamp(11px,1.2vmin,14px)/1 Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;background:rgba(34,211,238,.1)}h1,h2{font-family:var(--font-display);letter-spacing:-.045em;line-height:.98;margin:0;text-wrap:balance}h1{font-size:clamp(52px,8vmin,112px);max-width:12ch}h2{font-size:clamp(36px,5.2vmin,70px);max-width:14ch}p{font-size:clamp(18px,2.2vmin,28px);line-height:1.45;color:var(--muted);max-width:58ch;margin:0}.lead{font-size:clamp(22px,2.7vmin,34px);color:var(--fg);max-width:42ch}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2vmin}.card{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));border:1px solid var(--line);border-radius:24px;padding:2.2vmin;min-height:18vmin}.card h3{font-size:clamp(20px,2.4vmin,30px);margin:.2rem 0 .7rem;font-family:var(--font-display)}.card p{font-size:clamp(15px,1.6vmin,21px)}.cta{display:inline-flex;align-self:flex-start;margin-top:1vmin;border-radius:999px;background:var(--accent);color:#041018;padding:1rem 1.35rem;font-weight:800;text-decoration:none;font-size:clamp(17px,1.8vmin,24px)}.footer{position:absolute;left:7vmin;right:7vmin;bottom:4vmin;display:flex;justify-content:space-between;color:var(--muted);font:600 12px Consolas,monospace;letter-spacing:.08em;text-transform:uppercase}.progress{position:absolute;left:0;bottom:0;height:4px;background:var(--accent);width:0%;transition:width .2s ease}.presenter{height:100vh;display:grid;grid-template-columns:1fr 1fr;background:#05070d;color:var(--fg)}.preview{display:grid;place-items:center;border-right:1px solid var(--line);padding:24px}.preview iframe{width:min(90vw,920px);aspect-ratio:16/9;border:0;background:var(--bg);transform:scale(.9)}.notes-pane{padding:32px;overflow:auto}.notes-pane h1{font-size:28px;max-width:none;margin-bottom:14px}.notes-pane pre{white-space:pre-wrap;font:20px/1.55 var(--font-body);color:var(--fg)}.notes-meta{color:var(--accent);font:700 12px Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}@media(max-width:800px){.grid{grid-template-columns:1fr}.presenter{grid-template-columns:1fr}.preview{display:none}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage"><main class="deck" id="deck">
+<section class="slide active" data-title="Your meeting already has the deck inside it">
+  <span class="eyebrow">Example output</span>
+  <h1>Your meeting already has the deck inside it.</h1>
+  <p class="lead">The skill turns rough notes into a browser presentation, then keeps the consultant in control of the judgement.</p>
+  <div class="footer"><span>Brand sample: Nordic tech advisory</span><span>1 / 3</span></div>
+</section>
+<aside class="notes" hidden>
+DO:
+- Open with the practical pain.
+- Press the right arrow after the pause.
+
+SAY:
+Most teams do the valuable thinking in the meeting.
+Then someone has to turn it into a deck, a recap, and a next-step note.
+That handoff is where time disappears.
+</aside>
+<section class="slide" data-title="The first pass should be cheap">
+  <h2>The first pass should be cheap.</h2>
+  <div class="grid">
+    <div class="card"><h3>Brand match</h3><p>Use the partner homepage to sample colours, font signals, and tone.</p></div>
+    <div class="card"><h3>Presenter view</h3><p>Speaker notes live in the same file and stay hidden from the audience.</p></div>
+  </div>
+  <div class="footer"><span>What the skill adds</span><span>2 / 3</span></div>
+</section>
+<aside class="notes" hidden>
+DO:
+- Point to the two cards.
+
+SAY:
+This is the useful middle ground.
+You get something that looks like it belongs to the firm, and you still keep the deck portable.
+One file. Browser ready. Easy to send.
+</aside>
+<section class="slide" data-title="Try it on one recap this week">
+  <span class="eyebrow">Next step</span>
+  <h2>Try it on one recap this week.</h2>
+  <p>Paste the notes. Add the partner homepage. Ask for a 5-slide deck. Then edit the judgement, not the formatting.</p>
+  <a class="cta" href="./SKILL.md">Use the skill</a>
+  <div class="footer"><span>Action</span><span>3 / 3</span></div>
+</section>
+<aside class="notes" hidden>
+DO:
+- Close with the smallest useful experiment.
+
+SAY:
+Do not start with the biggest customer presentation of the quarter.
+Start with one recap.
+If it saves an hour and gives you a better first draft, keep going.
+</aside>
+<div class="progress" id="progress"></div>
+</main></div>
+<div class="presenter" id="presenter" hidden><div class="preview"><iframe id="thumb" title="Current slide preview"></iframe></div><section class="notes-pane"><div class="notes-meta" id="count"></div><h1 id="noteTitle"></h1><pre id="noteText"></pre></section></div>
+<script>
+(function(){const params=new URLSearchParams(location.search),isPresenter=params.get("presenter")==="notes";const slides=[...document.querySelectorAll(".slide")],notes=[...document.querySelectorAll(".notes")];const stage=document.getElementById("stage"),presenter=document.getElementById("presenter"),progress=document.getElementById("progress");let index=Math.max(0,Math.min(slides.length-1,Number(params.get("slide")||0)));const channelName="deck-maker-example-presenter",channel="BroadcastChannel" in window?new BroadcastChannel(channelName):null;function show(i,send=true){index=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,n)=>s.classList.toggle("active",n===index));if(progress)progress.style.width=((index+1)/slides.length*100)+"%";if(isPresenter)renderNotes();if(send)broadcast()}function broadcast(){const msg={type:"slide",index};if(channel)channel.postMessage(msg);try{localStorage.setItem(channelName,JSON.stringify({...msg,t:Date.now()}))}catch(e){}}function renderNotes(){stage.hidden=true;presenter.hidden=false;document.getElementById("count").textContent=`Slide ${index+1} of ${slides.length}`;document.getElementById("noteTitle").textContent=slides[index].dataset.title||"Slide";document.getElementById("noteText").textContent=notes[index]?.textContent.trim()||"No notes.";const thumb=document.getElementById("thumb");if(thumb)thumb.src=location.pathname+"?slide="+index}function openPresenter(){const win=window.open(location.pathname+"?presenter=notes&slide="+index,"presenter","width=1200,height=760");if(!win)alert("Allow popups for presenter view, or open this file with ?presenter=notes.")}document.addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(["arrowright","pagedown"," "].includes(k)){e.preventDefault();show(index+1)}if(["arrowleft","pageup"].includes(k)){e.preventDefault();show(index-1)}if(k==="home")show(0);if(k==="end")show(slides.length-1);if(k==="f")document.documentElement.requestFullscreen?.();if(k==="p"&&!isPresenter)openPresenter()});if(channel)channel.onmessage=e=>{if(e.data?.type==="slide")show(e.data.index,false)};window.addEventListener("storage",e=>{if(e.key===channelName){try{const msg=JSON.parse(e.newValue);if(msg.type==="slide")show(msg.index,false)}catch(err){}}});if(isPresenter)renderNotes();else{stage.hidden=false;presenter.hidden=true;show(index,false)}})();
+</script>
+</body>
+</html>
