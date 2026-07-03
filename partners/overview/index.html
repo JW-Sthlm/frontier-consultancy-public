@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Frontier Consultancy · Partner one-pager (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:        #0f0f1a;
+    --ink-soft:   #2a2a3a;
+    --muted:      #5a5a6e;
+    --line:       #e3e6ee;
+    --line-soft:  #eef1f6;
+    --bg:         #dde1ea;
+    --paper:      #ffffff;
+    --paper-soft: #fafbfd;
+    --blue:       #1a86e0;
+    --purple:     #6a3cc7;
+    --magenta:    #c850c0;
+    --hero-grad:  linear-gradient(135deg, #221a5b 0%, #4f2db5 45%, #8a2bc4 100%);
+    --accent-grad: linear-gradient(90deg, #1a86e0 0%, #6a3cc7 50%, #c850c0 100%);
+    --shadow:     0 12px 48px rgba(0,0,0,0.10);
+    --soft-bg:    #f3f0fb;
+  }
+
+  html, body {
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 16px 80px;
+  }
+
+  /* ── Page container ─────────────────────────────── */
+  .page {
+    width: 100%;
+    max-width: 980px;
+    background: var(--paper);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Hero band ──────────────────────────────────── */
+  .hero {
+    padding: 44px 56px 40px;
+    background: var(--hero-grad);
+    color: #ffffff;
+    position: relative;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    background: var(--accent-grad);
+  }
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.78);
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-size: clamp(34px, 4.4vw, 48px);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-wrap: balance;
+    margin-bottom: 8px;
+  }
+  .hero-subtitle {
+    font-size: 17px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.86);
+    margin-bottom: 16px;
+  }
+  .hero-lede {
+    font-size: 15px;
+    color: rgba(255,255,255,0.82);
+    max-width: 72ch;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  .hero-lede b { color: #ffffff; font-weight: 700; }
+
+  /* ── Stat row ───────────────────────────────────── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 26px 56px 0;
+  }
+  .stat {
+    background: var(--soft-bg);
+    border-radius: 10px;
+    padding: 22px 18px 18px;
+    text-align: center;
+  }
+  .stat .num {
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--purple);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 8px;
+    white-space: nowrap;
+  }
+  .stat .label {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+  .stat-sources {
+    padding: 10px 56px 0;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+  .stat-sources b {
+    color: var(--ink-soft);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    margin-right: 6px;
+  }
+
+  /* ── Track strip ────────────────────────────────── */
+  .track-strip {
+    margin: 22px 56px 0;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper-soft);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    font-size: 13px;
+  }
+  .track-strip .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex-basis: 100%;
+    margin-bottom: 2px;
+  }
+  .track-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: #ffffff;
+    border: 1px solid var(--line);
+  }
+  .track-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--muted);
+    flex: 0 0 8px;
+  }
+  .track-chip.live .dot   { background: #2ea35c; }
+  .track-chip.scope .dot  { background: #d4a017; }
+  .track-chip em {
+    font-style: normal;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Two-col body sections ──────────────────────── */
+  .section {
+    padding: 26px 56px;
+  }
+  .section-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 26px;
+  }
+  .section-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin-bottom: 10px;
+    text-wrap: balance;
+  }
+  .col p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    line-height: 1.55;
+  }
+  .col p b { color: var(--ink); font-weight: 700; }
+  .col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .col li {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .col li::before {
+    content: "›";
+    position: absolute;
+    left: 0; top: 0;
+    color: var(--purple);
+    font-weight: 700;
+  }
+
+  /* ── Motion band (full-width 5 columns) ─────────── */
+  .motion {
+    margin: 6px 56px 0;
+    padding: 22px 22px 18px;
+    background: linear-gradient(135deg, #f3f0fb 0%, #f9f5ff 100%);
+    border: 1px solid #e3dbf3;
+    border-radius: 12px;
+  }
+  .motion-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--purple);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .motion-cols {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .motion-col {
+    background: #ffffff;
+    border: 1px solid #e3dbf3;
+    border-radius: 8px;
+    padding: 12px 12px 14px;
+    text-align: center;
+    position: relative;
+  }
+  .motion-col .step {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+  .motion-col h4 {
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .motion-col p {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  /* ── Tech pills ─────────────────────────────────── */
+  .tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .tech-pill {
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6a3cc7 0%, #4f2db5 100%);
+  }
+  .tech-pill.alt {
+    background: linear-gradient(135deg, #c850c0 0%, #9333ea 100%);
+  }
+  .tech-pill.muted {
+    background: #ffffff;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+
+  /* ── Contacts ───────────────────────────────────── */
+  .contacts {
+    padding: 22px 56px 26px;
+    background: var(--paper-soft);
+    border-top: 1px solid var(--line);
+  }
+  .contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .contact {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .contact b {
+    display: block;
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .contact a {
+    color: var(--purple);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease;
+  }
+  .contact a:hover { color: #4a26a0; text-decoration-thickness: 2px; }
+  .contact .role {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  footer.foot {
+    padding: 22px 56px;
+    background: linear-gradient(90deg, #1a1547 0%, #2e1d6e 50%, #4d2391 100%);
+    color: rgba(255,255,255,0.92);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  footer.foot .brand {
+    font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  footer.foot .brand small {
+    display: block;
+    font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    font-size: 12px;
+    margin-top: 2px;
+    letter-spacing: 0.06em;
+  }
+  footer.foot .badge {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+
+  /* ── Print ──────────────────────────────────────── */
+  @page {
+    size: 210mm 625mm;
+    margin: 0;
+  }
+  @media print {
+    body { background: #ffffff; padding: 0; margin: 0; }
+    .page { box-shadow: none; border-radius: 0; max-width: none; margin: 0; }
+    .hero, .stat-row, .track-strip, .section, .motion, .contacts, footer.foot {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .hero, .section, .contacts, footer.foot { padding-left: 36px; padding-right: 36px; }
+    .stat-row, .stat-sources, .motion, .track-strip { margin-left: 36px; margin-right: 36px; padding-left: 0; padding-right: 0; }
+    .stat-sources { padding-top: 10px; }
+    /* Force desktop multi-col layout even when print viewport is narrow */
+    .stat-row     { grid-template-columns: repeat(3, 1fr) !important; }
+    .motion-cols  { grid-template-columns: repeat(5, 1fr) !important; gap: 10px !important; }
+    .contacts-grid{ grid-template-columns: repeat(4, 1fr) !important; }
+    .section-grid-2 { grid-template-columns: 1fr 1fr !important; }
+    /* Keep major sections from splitting across pages if reader still paginates */
+    .stat-row, .track-strip, .motion, .contacts, footer.foot, .section { break-inside: avoid; page-break-inside: avoid; }
+  }
+
+  /* ── Mobile ─────────────────────────────────────── */
+  @media (max-width: 760px) {
+    .hero, .section, .contacts, footer.foot { padding-left: 28px; padding-right: 28px; }
+    .stat-row, .motion, .track-strip { margin-left: 28px; margin-right: 28px; padding-left: 16px; padding-right: 16px; }
+    .stat-sources { padding-left: 28px; padding-right: 28px; }
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .motion-cols, .section-grid-2, .contacts-grid { grid-template-columns: 1fr 1fr; }
+    .motion-cols { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── Hero ─────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-eyebrow">Microsoft Partner Enablement · EMEA</div>
+    <h1>Frontier Consultancy</h1>
+    <p class="hero-subtitle">AI-First Delivery for Partner Consulting Teams</p>
+    <p class="hero-lede">A partner enablement programme that teaches AI-first delivery by running it on a real internal project of yours, before any customer is on the hook. <b>Three tracks. One motion.</b> Same agents, same toolstack, same playbook your team takes to paying engagements the week after.</p>
+  </header>
+
+  <!-- ── Stat cards ───────────────────────────────── -->
+  <div class="stat-row">
+    <div class="stat">
+      <div class="num">55%</div>
+      <div class="label">faster task completion with GitHub Copilot</div>
+    </div>
+    <div class="stat">
+      <div class="num">20&ndash;30%</div>
+      <div class="label">faster delivery on cloud + AI-assisted modernization</div>
+    </div>
+    <div class="stat">
+      <div class="num">30&ndash;40%</div>
+      <div class="label">lower delivery cost vs. traditional motion</div>
+    </div>
+  </div>
+  <div class="stat-sources">
+    <b>Sources</b>Peng et al., <em>The Impact of AI on Developer Productivity: Evidence from GitHub Copilot</em>, 2023 · McKinsey, <em>In search of cloud value: Can generative AI transform cloud ROI?</em>, 2023.
+  </div>
+
+  <!-- ── Track strip ──────────────────────────────── -->
+  <div class="track-strip">
+    <span class="label">Three tracks · pilot phase</span>
+    <span class="track-chip live"><span class="dot"></span>CAIP <em>· Azure</em></span>
+    <span class="track-chip live"><span class="dot"></span>AIBS <em>· D365 &amp; Power Platform</em></span>
+    <span class="track-chip scope"><span class="dot"></span>Security <em>· in scoping</em></span>
+  </div>
+
+  <!-- ── Partner Challenge | The Engagement ───────── -->
+  <section class="section section-grid-2">
+    <div class="col">
+      <div class="section-eyebrow">The Partner Challenge</div>
+      <h2>Delivery is changing faster than practices.</h2>
+      <ul>
+        <li>Expert consultant time consumed by low-value tasks AI can handle today.</li>
+        <li>Skill shortage across Azure, D365, and Security delivery practices.</li>
+        <li>Customer expectations on cost, speed, and AI-readiness rising quarter on quarter.</li>
+        <li>AI-first delivery is becoming the new baseline. Partners who build the muscle now keep margin when it does.</li>
+        <li>Training alone does not change practice. Doing the work does.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="section-eyebrow">The Engagement</div>
+      <h2>An AI-first motion you learn by doing.</h2>
+      <p>Frontier Consultancy equips a partner team to deliver AI-first work end to end. The mechanism is <b>customer-zero</b>: your team builds the playbook and the toolstack by running a real internal project before any paying customer is on the hook.</p>
+      <p><b>Build AND operate.</b> The same agent fleet that builds the platform stays attached to run it. Project revenue on the build, recurring revenue on the operating layer. One toolstack does both.</p>
+      <ul>
+        <li>Hands-on workshop using your own laptops, tools, and repos.</li>
+        <li>Real agents, MCP servers, and Copilot patterns built during the engagement.</li>
+        <li>Customer-zero project run by your team, coached by Microsoft.</li>
+        <li>Reusable artifacts you keep and redeploy on the next paying engagement.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Motion band ──────────────────────────────── -->
+  <div class="motion">
+    <div class="motion-title">The Frontier motion · from workshop to AI-first practice</div>
+    <div class="motion-cols">
+      <div class="motion-col">
+        <div class="step">Phase 1</div>
+        <h4>Workshop</h4>
+        <p>Hands-on day with the deck, exercises, and live agents.</p>
+      </div>
+      <div class="motion-col">
+        <div class="step">Phase 2</div>
+        <h4>Customer-zero</h4>
+        <p>Your team runs a real internal project with our coaching.</p>
+      </div>
+      <div class="motion-col">
+        <div class="step">Phase 3</div>
+        <h4>Co-delivery</h4>
+        <p>First customer engagement with Microsoft alongside.</p>
+      </div>
+      <div class="motion-col">
+        <div class="step">Phase 4</div>
+        <h4>GTM &amp; reuse</h4>
+        <p>Joint case study, demo asset, marketplace listing if it fits.</p>
+      </div>
+      <div class="motion-col">
+        <div class="step">Phase 5</div>
+        <h4>Scale</h4>
+        <p>Partner trains own consultants. Showcase day. Community.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Walk away | AI tools ─────────────────────── -->
+  <section class="section section-grid-2">
+    <div class="col">
+      <div class="section-eyebrow">What you walk away with</div>
+      <h2>Artifacts, not slides.</h2>
+      <ul>
+        <li><b>A working customer-zero project.</b> Real internal use case shipped before the programme ends.</li>
+        <li><b>A reusable agent or asset.</b> Built during customer-zero, deployed to the next engagement.</li>
+        <li><b>A curated toolstack.</b> Skills, agents, and MCP servers for Copilot CLI and VS Code.</li>
+        <li><b>An AI-first delivery playbook.</b> The framework the workshop teaches, in writing.</li>
+        <li><b>Hands-on exercise material.</b> Clones to your machine. Yours to keep and rerun.</li>
+        <li><b>A team that has done it once.</b> The hardest part to fake.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="section-eyebrow">AI tools &amp; technologies</div>
+      <h2>Hands-on across the Microsoft AI stack.</h2>
+      <p>Participants work with the tools they will use on customer engagements. Per-track focus, common foundations.</p>
+      <div class="tech-pills">
+        <span class="tech-pill">Copilot CLI</span>
+        <span class="tech-pill">VS Code Agent Mode</span>
+        <span class="tech-pill">GitHub Copilot</span>
+        <span class="tech-pill">Copilot Studio</span>
+        <span class="tech-pill">M365 Copilot</span>
+        <span class="tech-pill alt">Azure AI Foundry</span>
+        <span class="tech-pill alt">Dataverse MCP</span>
+        <span class="tech-pill alt">ADO MCP</span>
+        <span class="tech-pill alt">Custom MCP servers</span>
+        <span class="tech-pill muted">Power Platform</span>
+        <span class="tech-pill muted">Dynamics 365</span>
+        <span class="tech-pill muted">Sentinel &amp; Defender</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Audience | Outcomes ──────────────────────── -->
+  <section class="section section-grid-2">
+    <div class="col">
+      <div class="section-eyebrow">Who should attend</div>
+      <h2>The team that ships, not just the team that plans.</h2>
+      <ul>
+        <li>Delivery managers and practice leads building an AI-first capability.</li>
+        <li>Senior consultants and architects who will adopt the motion on customer engagements.</li>
+        <li>Pre-sales engineers preparing demos and proposals.</li>
+        <li>Technical leads across Azure, D365 &amp; Power Platform, or Security practices.</li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="section-eyebrow">Business outcomes for your practice</div>
+      <h2>Margin, IP, and a stronger Microsoft motion.</h2>
+      <ul>
+        <li>Increase pre-sales and delivery capacity without adding headcount.</li>
+        <li>Decrease implementation lead-time and cost for customers.</li>
+        <li>Productize assets from customer-zero and resell across engagements.</li>
+        <li>Layer a <b>build-and-operate</b> revenue stream on top of project work. Agents that built the platform stay on to run it.</li>
+        <li>Drive consumption of Copilot, Azure AI, and the Microsoft AI stack.</li>
+        <li>Open AI-first revenue streams beyond traditional services hours.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Contacts ─────────────────────────────────── -->
+  <section class="contacts">
+    <div class="section-eyebrow" style="margin-bottom: 12px;">EMEA track leads</div>
+    <div class="contacts-grid">
+      <div class="contact"><b><a href="mailto:jwallquist@microsoft.com">Johan Wallquist</a></b><span class="role">CAIP track</span></div>
+      <div class="contact"><b><a href="mailto:gielcuijpers@microsoft.com">Giel Cuijpers</a></b><span class="role">AIBS track</span></div>
+      <div class="contact"><b><a href="mailto:Marvin.Heilemann@microsoft.com">Marvin Heilemann</a></b><span class="role">AIBS track</span></div>
+      <div class="contact"><b><a href="mailto:Madalina.Dobre@microsoft.com">Madalina Dobre</a></b><span class="role">Security track</span></div>
+    </div>
+  </section>
+
+  <!-- ── Footer ──────────────────────────────────── -->
+  <footer class="foot">
+    <div class="brand">
+      Frontier Consultancy · AI-First Delivery for Partner Consulting Teams
+      <small>Microsoft Partner Enablement · EMEA · 2026</small>
+    </div>
+    <div class="badge">Microsoft Partner Program</div>
+  </footer>
+
+</div>
+
+</body>
+</html>

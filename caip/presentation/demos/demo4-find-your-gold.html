@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terminal demo · Demo 4 · find your gold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     TERMINAL DEMO ENGINE  (fixed · do not rewrite per deck)
+     One integer state (pos) drives the whole demo:
+       0                 launch slide (the slide before alt-tab)
+       1                 terminal up, boot prompt only (PS path> + caret)
+       2                 boot command typed + CLI booted
+       3..(2+N)          move 1..N
+       3+N               exit slide (the next slide)
+       4+N               closing ping reveal (only if CLOSING_PING set)
+     Everything is manual. No auto-advance. A single anim token
+     invalidates stale timers so nothing ever jumps.
+     Channel is namespaced by CONFIG.demoId so several demos can
+     live in one deck without their presenter windows crossing.
+     Embedded mode: load with ?embed=1 inside a host deck's iframe ·
+     the host slide replaces the launch slide (pos 0 is skipped, page
+     is transparent) and advancing past the end posts {evt:'done'} to
+     the host. Add &exit=0 to also drop the exit slide + ping.
+     ========================================================= */
+  :root{
+    --bg:#0E1116; --bg-elev:#161B22; --bg-soft:#1A2028; --bg-card:#131820;
+    --fg:#ECE6DC; --fg-2:#BAB3A8; --fg-muted:#6B6760; --fg-weak:#3F3D38;
+    --border:#1F252D; --border-soft:#181D24;
+    --accent:#E0A971; --accent-2:#C98A4C; --accent-soft:rgba(224,169,113,.10); --accent-line:rgba(224,169,113,.35);
+    --t-green:#7FB069; --t-pink:#D24FA3; --t-pink2:#C849A1; --t-amber:#FACC15; --t-blue:#5E9EFF; --ok:#28C840;
+    --t-add:#7FB069; --t-del:#E0746B;
+    --mono:'JetBrains Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+    --disp:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --jak:'Plus Jakarta Sans',sans-serif;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:radial-gradient(1200px 720px at 74% -14%,#171b22 0%,var(--bg) 60%);
+    color:var(--fg);font-family:var(--disp);overflow:hidden}
+
+  .ms-logo{position:fixed;top:22px;left:26px;display:flex;align-items:center;gap:9px;opacity:.82;z-index:5}
+  .ms-logo span{font-size:15px;font-weight:600;color:#c7ccd6;letter-spacing:.01em}
+
+  /* ---------------- Slides (launch + exit share .prevslide) ---------------- */
+  .stagewrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:6vh 24px}
+  .launch{display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;animation:fadeUp .5s var(--ease)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .prevslide{width:min(92vw,900px);text-align:left;animation:fadeUp .5s var(--ease)}
+  .prevslide .kick{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:22px}
+  .prevslide .kick b{color:var(--accent);font-weight:600}
+  .prevslide h1{font-family:var(--jak);font-size:clamp(34px,5.4vw,62px);font-weight:800;letter-spacing:-.02em;line-height:1.05;color:var(--fg)}
+  .prevslide h1 .amber{color:var(--accent)}
+  .prevslide .psub{margin-top:20px;font-size:clamp(16px,2vw,20px);color:var(--fg-2);max-width:54ch;line-height:1.5}
+
+  .demo-launch{display:inline-flex;align-items:center;gap:14px;padding:14px 22px;cursor:pointer;
+    background:rgba(224,169,113,.06);border:1.5px solid var(--accent-line);border-radius:14px;color:var(--fg);
+    font-family:var(--disp);transition:transform .15s var(--ease),background .15s,border-color .15s}
+  .demo-launch:hover,.demo-launch:focus-visible{background:rgba(224,169,113,.12);border-color:var(--accent);transform:translateY(-2px);outline:none}
+  .app-icon{width:46px;height:46px;border-radius:11px;background:linear-gradient(160deg,#1B1F24,#0C0E11);
+    border:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:20px;color:var(--t-pink);text-shadow:0 0 12px rgba(210,79,163,.55)}
+  .app-name{font-size:16px;font-weight:650;text-align:left}
+  .app-name small{display:block;font-family:var(--mono);font-size:11px;color:var(--fg-muted);font-weight:500;
+    letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+
+  #exitSlide{display:none}
+  #exitSlide.show{display:flex}
+
+  /* ---------------- Terminal overlay (alt-tab over the slide) ---------------- */
+  .overlay{position:fixed;inset:0;background:rgba(8,10,14,.58);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+    display:none;align-items:center;justify-content:center;padding:min(5vh,46px) 24px;z-index:30}
+  .overlay.show{display:flex;animation:scrim-in .42s var(--ease)}
+  @keyframes scrim-in{from{opacity:0}to{opacity:1}}
+  .overlay.show .cli{animation:winraise .5s var(--ease) both}
+  @keyframes winraise{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:none}}
+  .stage{position:relative;width:min(96vw,1140px);height:min(84vh,660px);display:flex}
+
+  .cli{flex:1;min-width:0;background:#0a0d12;border:1px solid #2A2F36;border-radius:11px;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+  .cli-chrome{height:32px;flex-shrink:0;display:flex;align-items:center;gap:7px;padding:0 13px;background:#1A1F26;border-bottom:1px solid #2A2F36}
+  .cli-chrome .dot{width:10px;height:10px;border-radius:50%}
+  .cli-chrome .dot.r{background:#FF5F57}.cli-chrome .dot.y{background:#FEBC2E}.cli-chrome .dot.g{background:#28C840}
+  .cli-chrome .title{margin:0 auto;font-family:var(--mono);font-size:11px;color:#9CA3AF;letter-spacing:.04em}
+  .cli-term{flex:1;min-height:0;overflow-y:auto;padding:24px 26px 30px;font-family:var(--mono);font-size:14px;line-height:1.55;color:#D4D8DC;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .cli-term::-webkit-scrollbar{width:0;height:0;display:none}
+
+  /* boot */
+  .boot-cmd{display:flex;align-items:baseline;gap:9px;margin-bottom:12px}
+  .boot-cmd .ps{color:var(--t-green);font-weight:600;flex-shrink:0}
+  .boot-cmd .typed{color:#E6E8EA;white-space:nowrap;overflow:hidden}
+  .caret{display:inline-block;width:8px;height:15px;background:var(--t-green);vertical-align:middle;margin-left:1px;animation:blink .9s steps(2) infinite}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .cp-banner{margin:6px 0 4px;padding:10px 13px;background:rgba(28,18,28,.5);border:1.5px solid var(--t-pink2);border-radius:7px;
+    display:flex;align-items:center;gap:13px;opacity:0;transform:translateY(-3px);transition:opacity .35s,transform .35s}
+  .cp-banner.in{opacity:1;transform:none}
+  .cp-logo{width:34px;height:29px;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(200,73,161,.35))}
+  .cp-brand .name{color:#E6E8EA;font-size:13px;font-weight:500}
+  .cp-brand .tag{color:var(--t-amber);font-size:12px}
+  .cp-status{display:flex;align-items:center;gap:9px;font-size:13px;color:#C5CBD1;opacity:0;margin-top:6px;transition:opacity .3s}
+  .cp-status.in{opacity:1}
+  .cp-status .dot{color:var(--t-blue);font-size:9px;line-height:1}
+  .cp-meta{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 4px 2px;margin-top:5px;
+    border-top:1px solid rgba(255,255,255,.05);opacity:0;transition:opacity .3s}
+  .cp-meta.in{opacity:1}
+  .cp-meta .cwd{color:#9CA3AF}.cp-meta .model{color:#C5CBD1}
+
+  /* conversation feed */
+  .line{opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s}
+  .line.in{opacity:1;transform:none}
+  .moveblock{margin-top:20px}
+  .moveblock.first{margin-top:16px}
+  .move-meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    margin-bottom:8px;opacity:.85}
+  .move-meta .est{color:var(--fg-muted)}
+  .ask-line{display:flex;align-items:flex-start;gap:9px}
+  .ask-line .ps{color:var(--t-pink);font-weight:700;text-shadow:0 0 5px rgba(210,79,163,.45);flex-shrink:0}
+  .ask-line .ask{color:#E6E8EA;white-space:pre-wrap;word-break:break-word}
+  .think{color:#6B7280;font-style:italic;padding-left:24px;font-size:.92em;margin-top:8px}
+  .think::before{content:'\2731 ';font-style:normal;color:#6B7280}
+  .agl{display:flex;align-items:baseline;gap:9px;margin-top:6px;padding-left:2px}
+  .agl .b{color:var(--accent);font-weight:700;width:13px;flex-shrink:0}
+  .tt{color:var(--t-pink);font-weight:600;font-size:11px;letter-spacing:.04em;padding:1px 7px;border-radius:4px;
+    background:rgba(210,79,163,.10);border:1px solid rgba(210,79,163,.22);flex-shrink:0;text-transform:lowercase}
+  .agl .txt{color:#C5CBD1;font-size:.95em}
+  .res{color:#cfd6e2;padding-left:25px;margin-top:6px;font-size:.95em;position:relative}
+  .res::before{content:'\21B3';position:absolute;left:6px;color:var(--fg-muted)}
+  .modepill{display:inline-block;margin-top:10px;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 11px;border-radius:5px;color:#5ad17e;background:rgba(57,211,83,.10);border:1px solid rgba(57,211,83,.28)}
+
+  /* ---- artifact card (kinds: deck | code | dashboard | doc) ---- */
+  .card{margin:24px 0 8px;background:#0B0F14;border:1px solid rgba(255,255,255,.06);border-radius:11px;overflow:hidden;
+    box-shadow:0 30px 60px rgba(0,0,0,.6), 0 6px 14px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.4);
+    opacity:0;transform:translateY(22px) scale(.92);transition:opacity .55s var(--ease),transform .55s cubic-bezier(.34,1.56,.64,1);
+    font-family:var(--disp)}
+  .card.in{opacity:1;transform:none}
+  .card-chrome{height:32px;display:flex;align-items:center;justify-content:center;background:#1A1F26;border-bottom:1px solid #2A2F36;position:relative;padding:0 12px}
+  .card-chrome::before{content:'';position:absolute;left:13px;top:50%;width:10px;height:10px;border-radius:50%;
+    background:#FF5F57;box-shadow:17px 0 0 #FEBC2E,34px 0 0 #28C840;transform:translateY(-50%)}
+  .card-chrome .url{background:#0B0F14;border:1px solid #2A2F36;padding:4px 16px;border-radius:3px;
+    font-family:var(--mono);font-size:10.5px;color:#9CA3AF;letter-spacing:.03em}
+  .card-body{background:linear-gradient(180deg,#11161D,#0B0F14);padding:22px 22px 18px}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:4px}
+  .card-foot .meta{font-size:12.5px;color:var(--fg-2)}
+  .card-foot .meta b{color:var(--fg);font-weight:600}
+  .ppill{font-family:var(--mono);font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:7px;
+    border:1px solid var(--accent-line);border-radius:8px;padding:6px 11px;background:var(--accent-soft)}
+  /* deck */
+  .deckmini{display:flex;gap:8px;margin-bottom:14px}
+  .sl{flex:1;border:1px solid var(--border);border-radius:7px;height:58px;background:rgba(255,255,255,.02);
+    display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;padding:6px}
+  .sl b{font-family:var(--jak);font-size:15px;font-weight:800;color:var(--accent);line-height:1}
+  .sl span{font-size:8.5px;color:var(--fg-muted);text-align:center;line-height:1.2}
+  .sl.story b{color:var(--fg);font-size:11px;font-weight:700}
+  /* code */
+  .codemini{font-family:var(--mono);font-size:12px;line-height:1.5;margin-bottom:12px}
+  .codemini .cl{display:flex;gap:10px;padding:1px 6px;border-radius:3px}
+  .codemini .cl .g{width:14px;flex:none;text-align:center;color:var(--fg-muted)}
+  .codemini .cl.add{background:rgba(127,176,105,.10)} .codemini .cl.add .t{color:var(--t-add)} .codemini .cl.add .g{color:var(--t-add)}
+  .codemini .cl.del{background:rgba(224,116,107,.10)} .codemini .cl.del .t{color:var(--t-del)} .codemini .cl.del .g{color:var(--t-del)}
+  .codemini .cl .t{color:#C5CBD1;white-space:pre}
+  /* dashboard */
+  .dashmini{display:flex;gap:8px;margin-bottom:14px}
+  .tile{flex:1;border:1px solid var(--border);border-radius:8px;padding:12px 10px;background:rgba(255,255,255,.02);text-align:center}
+  .tile b{display:block;font-family:var(--jak);font-size:20px;font-weight:800;color:var(--accent);line-height:1.1}
+  .tile span{font-size:9px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em}
+  /* doc */
+  .docmini{margin-bottom:12px}
+  .docmini h4{font-family:var(--jak);font-size:16px;font-weight:800;color:var(--fg);margin-bottom:8px}
+  .docmini p{font-size:12px;color:var(--fg-2);line-height:1.5;margin-bottom:6px}
+  .docmini .bar{height:7px;border-radius:4px;background:rgba(255,255,255,.05);margin-bottom:6px}
+  .docmini .bar.s{width:70%} .docmini .bar.m{width:88%}
+
+  /* ---------------- Closing ping (optional) ---------------- */
+  .wa-ping{position:fixed;top:40px;right:40px;width:392px;max-width:36vw;background:#1F2C34;color:#E9EDEF;
+    border-radius:16px;padding:15px 17px;box-shadow:0 22px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07);
+    font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;z-index:40;
+    opacity:0;transform:translateX(125%) translateY(-8px);pointer-events:none;display:none}
+  .wa-ping.live{display:block}
+  .wa-ping.in{animation:wa-in .58s cubic-bezier(.22,1,.36,1) forwards}
+  @keyframes wa-in{0%{opacity:0;transform:translateX(125%) translateY(-8px)}60%{opacity:1}100%{opacity:1;transform:translateX(0) translateY(0)}}
+  .wa-ping .wa-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .wa-ping .wa-logo{width:28px;height:28px;flex:none}
+  .wa-ping .wa-app{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#8FA6B2;font-weight:700}
+  .wa-ping .wa-time{margin-left:auto;font-size:12px;color:#8FA6B2}
+  .wa-ping .wa-from{font-size:15.5px;font-weight:700;color:#fff;margin-bottom:3px}
+  .wa-ping .wa-msg{font-size:14.5px;line-height:1.46;color:#D6DEE2}
+  .wa-ping .wa-msg b{color:#fff;font-weight:700}
+
+  /* ---------------- Presenter view ---------------- */
+  body.presenter .stagewrap,body.presenter .overlay,body.presenter .ms-logo,body.presenter .wa-ping{display:none!important}
+  .pv{display:none;position:fixed;inset:0;background:var(--bg);color:var(--fg);padding:40px 48px;flex-direction:column;gap:20px}
+  body.presenter .pv{display:flex}
+  .pv-top{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid var(--border);padding-bottom:16px}
+  .pv-step{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
+  .pv-est{font-family:var(--mono);font-size:13px;color:var(--fg-muted)}
+  .pv-title{font-family:var(--jak);font-size:30px;font-weight:800;letter-spacing:-.01em}
+  /* Phase pill: huge, top-right of presenter top bar, color-coded so it's impossible to miss */
+  .pv-phase{margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.14em;
+    padding:8px 16px;border-radius:999px;text-transform:uppercase;display:none}
+  .pv-phase.arm{display:inline-block;background:rgba(74,158,255,.18);color:#7fb8ff;border:1px solid rgba(74,158,255,.5)}
+  .pv-phase.typed{display:inline-block;background:rgba(255,179,71,.18);color:#ffc888;border:1px solid rgba(255,179,71,.5)}
+  .pv-phase.fire{display:inline-block;background:rgba(57,211,83,.18);color:#5ad17e;border:1px solid rgba(57,211,83,.5)}
+  .pv-ask{font-family:var(--mono);font-size:16px;color:#E6E8EA;background:var(--bg-card);border:1px solid var(--border);
+    border-left:3px solid var(--t-pink);border-radius:8px;padding:14px 18px;line-height:1.5}
+  .pv-ask .lbl{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:7px}
+  .pv-say{font-size:21px;line-height:1.55;color:var(--fg);max-width:62ch}
+  .pv-say p{margin:0 0 14px;padding:0 0 0 14px;border-left:3px solid transparent;transition:border-color .2s}
+  .pv-say p:last-child{margin-bottom:0}
+  .pv-say p.active.arm{border-left-color:rgba(74,158,255,.7)}
+  .pv-say p.active.typed{border-left-color:rgba(255,179,71,.7)}
+  .pv-say p.active.fire{border-left-color:rgba(57,211,83,.7)}
+  .pv-say .lbl{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:9px}
+  .pv-rail{margin-top:auto;display:flex;gap:7px;flex-wrap:wrap}
+  .pv-rail .pvr{font-family:var(--mono);font-size:11px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);color:var(--fg-muted)}
+  .pv-rail .pvr.done{color:#5ad17e;border-color:rgba(57,211,83,.3)}
+  .pv-rail .pvr.now{color:#1a1205;background:var(--accent);border-color:var(--accent);font-weight:600}
+  .pv-ctrl{display:flex;align-items:center;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+  .pv-ctrl button{font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:9px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);color:var(--fg);cursor:pointer;transition:border-color .15s,color .15s}
+  .pv-ctrl button:hover{border-color:var(--accent);color:var(--accent)}
+  .pv-ctrl button.primary{background:var(--accent);color:#1a1205;border-color:var(--accent);font-weight:700}
+  .pv-ctrl .hint{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--fg-muted);letter-spacing:.05em}
+  .pv-ctrl .hint kbd{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:var(--fg-2);margin:0 2px}
+
+  /* ---------------- Build-2026-gold additions ---------------- */
+  /* hero pixel image on launch + exit slides */
+  .hero-img{display:block;width:min(64vw,560px);height:auto;border-radius:16px;
+    box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04);
+    image-rendering:pixelated;image-rendering:-moz-crisp-edges}
+  .exit-hero{width:min(58vw,500px)}
+  .launch .prevslide,#exitSlide .prevslide{text-align:center}
+  .launch .prevslide h1,#exitSlide .prevslide h1{margin-left:auto;margin-right:auto}
+  .launch .prevslide .psub,#exitSlide .prevslide .psub{margin-left:auto;margin-right:auto}
+
+  /* QR + share strip on the exit slide */
+  .share{display:flex;align-items:center;gap:28px;margin-top:22px;padding:22px 26px;
+    background:rgba(224,169,113,.06);border:1.5px solid var(--accent-line);border-radius:14px}
+  .share .qr{width:200px;height:200px;flex-shrink:0;background:#fff;border-radius:11px;padding:10px;display:flex;align-items:center;justify-content:center}
+  .share .qr img{width:100%;height:100%;image-rendering:pixelated;display:block}
+  .share .qrtext{display:flex;flex-direction:column;gap:4px;text-align:left}
+  .share .qrtext .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-muted)}
+  .share .qrtext .url{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:600;letter-spacing:.01em}
+  .share .qrtext .h{font-family:var(--jak);font-size:18px;font-weight:700;color:var(--fg);line-height:1.2}
+
+  /* gallery card kind: 2 rows x 3 tiles, image/icon + label + status pill */
+  .gallerymini{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+  .gtile{border:1px solid var(--border);border-radius:9px;overflow:hidden;
+    background:rgba(255,255,255,.02);display:flex;flex-direction:column;align-items:stretch}
+  .gtile .gimg{height:72px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--border-soft)}
+  .gtile .gimg img{width:100%;height:100%;object-fit:cover;display:block}
+  .gtile .gimg .gicon{font-size:30px;line-height:1;filter:drop-shadow(0 2px 5px rgba(0,0,0,.4))}
+  .gtile .glabel{padding:8px 8px 4px;font-size:11.5px;color:var(--fg);font-weight:600;line-height:1.25;text-align:center}
+  .gtile .gpill{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+    padding:2px 7px;margin:0 auto 8px;border-radius:99px;border:1px solid transparent}
+  .gtile.cool .gimg{background:linear-gradient(135deg,#21183a,#0c0c1a)}
+  .gtile.cool .gpill{color:#a3b1ff;background:rgba(94,158,255,.10);border-color:rgba(94,158,255,.30)}
+  .gtile.act  .gimg{background:linear-gradient(135deg,#1a2818,#0c130a)}
+  .gtile.act  .gpill{color:#9ed386;background:rgba(127,176,105,.10);border-color:rgba(127,176,105,.32)}
+
+  /* bottom input bar · pinned, like real Copilot CLI */
+  .cli-input{flex-shrink:0;border-top:1px solid #1f2329;background:#0d1117;
+    padding:13px 18px;font-family:var(--mono);font-size:14px;line-height:1.4;min-height:28px}
+  .cli-input .ips{color:var(--t-pink);font-weight:700;text-shadow:0 0 5px rgba(210,79,163,.45);margin-right:10px}
+  .cli-input .ityped{color:#E6E8EA;white-space:pre-wrap;word-break:break-word}
+  .cli-input .icaret{display:inline-block;width:8px;height:15px;background:var(--t-green);
+    vertical-align:middle;margin-left:1px;animation:blink .9s steps(2) infinite}
+  .cli-hint{flex-shrink:0;padding:6px 18px;background:#0d1117;border-top:1px solid #1f2329;
+    font-family:var(--mono);font-size:10.5px;color:#5a6270;display:flex;justify-content:space-between;letter-spacing:.04em}
+
+  /* card popup overlay - sits ON TOP of the terminal, above the input bar */
+  .card-stage{position:absolute;left:34px;right:34px;bottom:96px;z-index:20;
+    opacity:0;pointer-events:none;
+    transform:translateY(28px) scale(.92);
+    transition:opacity .5s var(--ease),transform .55s cubic-bezier(.34,1.56,.64,1);
+    max-height:calc(100% - 160px)}
+  .card-stage.in{opacity:1;transform:none}
+  .card-stage .card{margin:0;opacity:1;transform:none;
+    box-shadow:0 40px 90px rgba(0,0,0,.75), 0 8px 18px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.55)}
+  /* cards rendered inline in the term feed the stage only; don't show them in the scroll */
+  .cli-term .card{display:none}
+
+  /* Build pixel logo as the launch slide hero */
+  .build-hero{display:block;width:min(38vw,260px);height:auto;margin:0 auto 28px;
+    image-rendering:pixelated;image-rendering:-moz-crisp-edges;
+    filter:drop-shadow(0 14px 32px rgba(0,0,0,.5))}
+
+  /* ---------------- Embedded mode (?embed=1) ----------------
+     The engine runs inside a host deck's dialog/iframe. The HOST SLIDE is the
+     launch slide, so the page goes transparent, the internal launch slide and
+     logo never render, and the terminal scrim dims the deck slide behind it.
+     ?exit=0 additionally drops the exit slide: the demo ends after the last
+     move and the next advance posts {evt:'done'} to the host. */
+  body.embed{background:transparent}
+  body.embed .ms-logo{display:none}
+  body.embed #launchSlide{display:none!important}
+  body.embed #exitSlide.show{background:radial-gradient(1200px 720px at 74% -14%,#171b22 0%,var(--bg) 60%)}
+
+  /* ---- browser frame (frame:"browser" on any card kind) ----
+     Replaces the terminal-ish chrome with a real browser window: tab strip,
+     address bar with nav glyphs and a lock, optional light page body so the
+     artifact unmistakably reads as "opened in a web browser". */
+  .card.browser .br-tabs{display:flex;align-items:flex-end;gap:6px;background:#101419;padding:7px 10px 0 56px;height:36px;position:relative;border-bottom:1px solid #2A2F36}
+  .card.browser .br-tabs::before{content:'';position:absolute;left:13px;top:50%;width:10px;height:10px;border-radius:50%;
+    background:#FF5F57;box-shadow:17px 0 0 #FEBC2E,34px 0 0 #28C840;transform:translateY(-50%)}
+  .card.browser .br-tab{display:inline-flex;align-items:center;gap:8px;max-width:260px;padding:6px 14px 7px;
+    background:#1A1F26;border:1px solid #2A2F36;border-bottom:none;border-radius:8px 8px 0 0;
+    font-family:var(--disp);font-size:11px;color:#C5CBD1;white-space:nowrap;overflow:hidden}
+  .card.browser .br-fav{width:11px;height:11px;border-radius:3px;flex-shrink:0;
+    background:conic-gradient(from 45deg,#F25022 0 25%,#7FBA00 0 50%,#00A4EF 0 75%,#FFB900 0)}
+  .card.browser .br-newtab{font-size:14px;color:#5a6270;padding:0 6px 4px}
+  .card.browser .br-bar{display:flex;align-items:center;gap:9px;background:#1A1F26;padding:6px 12px;border-bottom:1px solid #2A2F36}
+  .card.browser .br-nav{font-size:13px;color:#9CA3AF;line-height:1}
+  .card.browser .br-nav.dim{color:#4a515c}
+  .card.browser .br-url{flex:1;display:flex;align-items:center;gap:7px;background:#0B0F14;border:1px solid #2A2F36;
+    border-radius:999px;padding:4px 14px;font-family:var(--mono);font-size:10.5px;color:#9CA3AF;letter-spacing:.02em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card.browser .br-lock{width:9px;height:11px;flex-shrink:0;border:1.5px solid #7FB069;border-radius:2px;position:relative;margin-top:2px}
+  .card.browser .br-lock::before{content:'';position:absolute;left:1px;top:-5px;width:5px;height:5px;
+    border:1.5px solid #7FB069;border-bottom:none;border-radius:4px 4px 0 0}
+  /* light page body · overrides for every inner kind */
+  .card.browser.light .card-body{background:#FFFFFF}
+  .card.browser.light .docmini h4{color:#16191D}
+  .card.browser.light .docmini p{color:#3D4450}
+  .card.browser.light .docmini .bar{background:rgba(0,0,0,.07)}
+  .card.browser.light .sl{border-color:#E2E5EA;background:#F7F8FA}
+  .card.browser.light .sl b{color:#B4690E}
+  .card.browser.light .sl span{color:#6B7280}
+  .card.browser.light .sl.story b{color:#16191D}
+  .card.browser.light .tile{border-color:#E2E5EA;background:#F7F8FA}
+  .card.browser.light .tile b{color:#B4690E}
+  .card.browser.light .tile span{color:#6B7280}
+  .card.browser.light .codemini .cl .t{color:#3D4450}
+  .card.browser.light .codemini .cl.add{background:rgba(46,160,67,.12)} .card.browser.light .codemini .cl.add .t,.card.browser.light .codemini .cl.add .g{color:#1a7f37}
+  .card.browser.light .codemini .cl.del{background:rgba(207,34,46,.10)} .card.browser.light .codemini .cl.del .t,.card.browser.light .codemini .cl.del .g{color:#cf222e}
+  .card.browser.light .card-foot .meta{color:#57606A}
+  .card.browser.light .card-foot .meta b{color:#16191D}
+  .card.browser.light .ppill{color:#B4690E;border-color:rgba(180,105,14,.35);background:rgba(224,169,113,.12)}
+  .card.browser.light .gtile{border-color:#E2E5EA;background:#F7F8FA}
+  .card.browser.light .glabel{color:#16191D}
+</style>
+</head>
+<body>
+
+  <div class="ms-logo" aria-label="Microsoft">
+    <svg width="20" height="20" viewBox="0 0 23 23" aria-hidden="true">
+      <rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+      <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/><rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+    </svg>
+    <span>Microsoft</span>
+  </div>
+
+  <!-- LAUNCH SLIDE (what's on screen before alt-tab) -->
+  <div class="stagewrap" id="launchSlide">
+    <div class="launch">
+      <img class="build-hero" id="launchHero" src="" alt="" style="display:none">
+      <div class="prevslide">
+        <div class="kick" id="launchKick"></div>
+        <h1 id="launchH1"></h1>
+        <div class="psub" id="launchSub"></div>
+      </div>
+      <button class="demo-launch" id="launchBtn" type="button" aria-label="Copilot CLI">
+        <span class="app-icon" aria-hidden="true">&#10095;_</span>
+        <span class="app-name">Copilot CLI</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TERMINAL OVERLAY -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="stage">
+      <div class="cli">
+        <div class="cli-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="title" id="cliTitle"></span></div>
+        <div class="cli-term" id="term"></div>
+        <div class="card-stage" id="cardStage" aria-hidden="true"></div>
+        <div class="cli-input" id="cliInput">
+          <span class="ips">&#10095;</span><span class="ityped" id="cliTyped"></span><span class="icaret" id="cliCaret"></span>
+        </div>
+        <div class="cli-hint"><span>tab autocomplete · enter to send</span><span id="cliMode">Autopilot</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT SLIDE (the next slide after the demo) -->
+  <div id="exitSlide" class="stagewrap">
+    <div class="launch">
+      <img class="hero-img exit-hero" id="exitHero" src="" alt="" style="display:none">
+      <div class="prevslide">
+        <div class="kick" id="exitKick"></div>
+        <h1 id="exitH1"></h1>
+        <p class="psub" id="exitSub"></p>
+      </div>
+      <div class="share" id="shareBlock" style="display:none">
+        <div class="qr" id="shareQrWrap"><img id="shareQr" src="" alt="QR" onerror="this.parentNode.style.display='none'"></div>
+        <div class="qrtext">
+          <span class="lbl" id="shareLbl">Scan or visit</span>
+          <span class="url" id="shareUrl"></span>
+          <span class="h" id="shareHeadline"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOSING PING (optional; populated from spec) -->
+  <div class="wa-ping" id="waPing" aria-hidden="true">
+    <div class="wa-head">
+      <svg class="wa-logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#5059C9"/>
+        <path fill="#fff" d="M9 9h14v3.2h-5.4V23h-3.2V12.2H9z"/>
+        <circle cx="24.5" cy="11" r="3.2" fill="#7B83EB"/>
+      </svg>
+      <span class="wa-app" id="waApp">Teams</span>
+      <span class="wa-time">now</span>
+    </div>
+    <div class="wa-from" id="waFrom"></div>
+    <div class="wa-msg" id="waMsg"></div>
+  </div>
+
+  <!-- PRESENTER VIEW -->
+  <div class="pv" id="pv">
+    <div class="pv-top"><span class="pv-step" id="pvStep"></span><span class="pv-est" id="pvEst"></span><span class="pv-title" id="pvTitle"></span><span class="pv-phase" id="pvPhase"></span></div>
+    <div class="pv-ask" id="pvAskWrap"><span class="lbl">Prompt to send</span><span id="pvAsk"></span></div>
+    <div class="pv-say"><span class="lbl">Say</span><span id="pvSay"></span></div>
+    <div class="pv-rail" id="pvRail"></div>
+    <div class="pv-ctrl">
+      <button id="pvBack" type="button">&#9664; Back</button>
+      <button id="pvNext" class="primary" type="button">Advance &#9654;</button>
+      <button id="pvReset" type="button">Replay</button>
+      <span class="hint"><kbd>space</kbd> advance <kbd>&larr;</kbd> back <kbd>PgUp</kbd>/<kbd>PgDn</kbd> scene <kbd>Home</kbd>/<kbd>End</kbd> jump <kbd>R</kbd> replay</span>
+    </div>
+  </div>
+
+<script>
+/* =====================================================================
+   ▼▼▼  SPEC · REPLACE THIS BLOCK PER DECK  ▼▼▼
+   This is the ONLY part the skill edits. The engine below is fixed.
+   - demoId   : unique per demo (namespaces the presenter channel).
+   - moves[]  : one object per advance. line kinds: think|tool|res|mode|card
+   - card     : { k:"card", kind:"deck|code|dashboard|doc", data:{...} }
+   - notes[]  : presenter note per pos. index 0=launch, 1=terminal up,
+                2=boot, 3..=moves, then exit, then ping (if any).
+   - closingPing: optional. Set to null to disable.
+   Default language is English. Tone/voice follow Johan's global voice
+   + content-humanizer skills (do NOT hard-code voice rules here).
+   ===================================================================== */
+window.DEMO_SPEC = {
+  config: {
+    demoId: "caip-demo4-gold",
+    title: "Demo 4 \u00b7 find your gold",
+    cwd: "~/projects/partner-monday",
+    model: "claude-fable-5",
+    bootCmd: "copilot --allow-all",
+    cliVer: "v1.0.61",
+    typeBoot: 34, typeAsk: 26, lineGap: 480, bootGap: 230,
+    bootLines: [
+      "Loaded env: .github/copilot-instructions.md",
+      "Loaded skill: find-your-gold \u00b7 announcements to offers",
+      "Loaded context: partner-profile.md \u00b7 fresh \u00b7 Aurora \u00b7 data & AI"
+    ]
+  },
+  launchSlide: {
+    kick: "Demo 4 \u00b7 from noise to offer",
+    h1: "Announcement noise &rarr; <span class=\"amber\">your offer + your IP.</span>",
+    sub: "Build 2026 just happened. 400+ sessions of buzz. Three prompts to pipeline."
+  },
+  exitSlide: {
+    kick: "Demo 4 \u00b7 landed",
+    h1: "First deal pays. <span class=\"amber\">The IP compounds.</span>",
+    sub: "Same skill, your niche, any announcement wave. Ignite is next.",
+    share: {
+      url: "jw-sthlm.github.io/frontier-consultancy-public",
+      headline: "find-your-gold prompts \u00b7 free on the partner site",
+      label: "Grab the pack"
+    }
+  },
+  theme: {
+    // CAIP deck (Foundry v3): dark canvas + aurora gradient accents, Inter type.
+    vars: {
+      "--bg": "#07080a", "--fg": "#f0f1f3", "--fg-2": "#c8cad0", "--fg-muted": "#8a8d96",
+      "--accent": "#00d4ff", "--accent-line": "rgba(0,212,255,.35)", "--accent-soft": "rgba(0,212,255,.10)",
+      "--jak": "'Inter',-apple-system,system-ui,sans-serif"
+    },
+    css: "body:not(.embed){background:#07080a}" +
+      ".prevslide h1{font-weight:600;letter-spacing:-.02em}" +
+      ".prevslide h1 .amber{background:linear-gradient(135deg,#00d4ff 0%,#7c3aed 50%,#ec4899 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}" +
+      ".prevslide .kick{background:linear-gradient(135deg,#00d4ff,#7c3aed,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}" +
+      ".prevslide .kick b{color:transparent}" +
+      ".prevslide .psub{font-weight:300}" +
+      "body.embed #exitSlide.show{background:#07080a}"
+  },
+  moves: [
+    { title:"Pull from the source", est:"~1 min",
+      ask:"Find the Build 2026 announcements that matter for my niche. Primary blogs only. Cross-check against my recent customer signals. Cite the source.",
+      lines:[
+        {k:"think", t:"profile is on disk. niche locked. recent signals fresh. now go find the news\u2026"},
+        {k:"tool", tag:"fetch", t:"devblogs.microsoft.com/foundry \u00b7 Build 2026 recap"},
+        {k:"tool", tag:"fetch", t:"github.blog \u00b7 GitHub Copilot app announcement"},
+        {k:"tool", tag:"fetch", t:"azure.microsoft.com/blog \u00b7 Microsoft Discovery GA"},
+        {k:"res",  t:"12 agentic announcements pulled \u00b7 source-cited \u00b7 cross-referenced to your accounts"},
+        {k:"card", kind:"doc", data:{
+          url:"build-2026-source-list \u00b7 working notes",
+          title:"12 agentic announcements \u00b7 from the source",
+          paras:[
+            "1. Microsoft Foundry \u00b7 hosted agents, toolboxes, memory \u00b7 devblogs",
+            "2. GitHub Copilot app \u00b7 My Work, Canvas, Agent Merge \u00b7 github.blog",
+            "3. Microsoft Discovery \u00b7 GA + Discovery app preview \u00b7 azure blog",
+            "4. Agent 365 \u00b7 identity, security, lifecycle \u00b7 tech community",
+            "5. Agent Framework 1.0 \u00b7 .NET + Python GA \u00b7 devblogs",
+            "6. Project Solara \u00b7 AI-native hardware concept",
+            "bar"
+          ],
+          foot:"12 items \u00b7 all sources linked"
+        }}
+      ]},
+    { title:"Sort: cool vs yours", est:"~1 min",
+      ask:"Now sort them. Two buckets. Cool moonshots versus things that change my partner business this quarter. Brutal honesty.",
+      lines:[
+        {k:"think", t:"every announcement is exciting. very few change anything on Monday\u2026"},
+        {k:"tool", tag:"reason", t:"scoring on partner impact \u00b7 12 items"},
+        {k:"res",  t:"split \u00b7 4 moonshots \u00b7 4 yours this quarter \u00b7 4 in the middle"},
+        {k:"card", kind:"gallery", data:{
+          url:"build-2026-sorted \u00b7 working notes",
+          tiles:[
+            {kind:"cool", icon:"\uD83D\uDEF8", label:"Project Solara"},
+            {kind:"cool", icon:"\u269B\uFE0F", label:"Majorana 2"},
+            {kind:"cool", icon:"\uD83C\uDFA8", label:"MAI Image / Voice"},
+            {kind:"cool", icon:"\uD83E\uDDEC", label:"Frontier Tuning \u00b7 Mayo"},
+            {kind:"act",  icon:"\uD83D\uDEE0\uFE0F", label:"GitHub Copilot app"},
+            {kind:"act",  icon:"\uD83D\uDEE1\uFE0F", label:"Agent 365"},
+            {kind:"act",  icon:"\uD83C\uDFED", label:"Foundry Hosted Agents"},
+            {kind:"act",  icon:"\uD83E\uDDF1", label:"Copilot SDK"}
+          ],
+          foot:"8 of 12 shown \u00b7 4 in the middle bucket"
+        }}
+      ]},
+    { title:"Build me an offer + the IP", est:"~1.5 min",
+      ask:"Take the biggest one. Agent 365. Package it as a three-week, fixed-price partner offer my team can pitch on Monday. And build me the reusable scaffolding underneath \u00b7 playbook, inventory tool, agent templates \u00b7 so customer two next month is half the work.",
+      lines:[
+        {k:"think", t:"a real offer needs an artefact AND the IP that compounds across customers\u2026"},
+        {k:"tool", tag:"plan", t:"3-week scope \u00b7 deliverables \u00b7 price band \u00b7 reusable IP layer"},
+        {k:"tool", tag:"scaffold", t:"playbook template \u00b7 inventory tool \u00b7 agent starter pack"},
+        {k:"tool", tag:"write", t:"agent-365-readiness-sprint.html \u00b7 customer-ready one-pager"},
+        {k:"tool", tag:"open",  t:"agent-365-readiness-sprint.html \u00b7 opening in your default browser"},
+        {k:"card", kind:"doc", frame:"browser", data:{
+          url:"file:///C:/projects/partner-monday/agent-365-readiness-sprint.html",
+          tab:"Agent 365 Readiness Sprint",
+          title:"Agent 365 Readiness Sprint \u00b7 3 weeks \u00b7 fixed price",
+          paras:[
+            "<b>Week 1</b> \u00b7 Inventory the customer's agents. Map to Entra, Purview, Defender posture. Flag the 5 biggest gaps.",
+            "<b>Week 2</b> \u00b7 Governance baseline. Identity model, lifecycle policy, approval workflow. Real deliverables, not slides.",
+            "<b>Week 3</b> \u00b7 One production agent live end-to-end. Hand over the runbook. Train the customer team.",
+            "<b>Your IP</b> &rarr; governance playbook, inventory tool, agent starter pack \u00b7 reused customer 2, 3, 4.",
+            "bar"
+          ],
+          foot:"3 weeks \u00b7 fixed price"
+        }}
+      ]}
+  ],
+  notes: [
+    { step:"Setup", est:"", title:"Find your gold", ask:null,
+      say:"You just saw the three patterns and the IP argument. Here is how that IP actually gets born, ten days after an announcement wave. Build just happened. 400+ sessions, LinkedIn on fire, and every partner asks the same thing on Monday: what do I actually DO with it?" },
+    { step:"Terminal", est:"", title:"Same terminal, again", ask:null,
+      say:"Same terminal as the other demos, same casting: we are Aurora. The difference this time: the agent already has Aurora's partner profile on disk. Our niche, our accounts, what customers have been asking. That came from a step-zero run against my own Teams and mail." },
+    { step:"Boot", est:"", title:"copilot --allow-all", ask:"copilot --allow-all",
+      say:"Boot it. Look at the context line. The find-your-gold skill, and a fresh partner profile. The agent starts the day knowing my niche.\n\nTyped, not sent. One beat: this skill ships on the partner site. The prompts work in any AI chat. The CLI just runs them as one motion.\n\nBooted and briefed. Three prompts from here to an offer." },
+    { step:"Move 1", est:"~1 min", title:"Pull from the source", ask:null,
+      say:"First move. I tell it what to do with everything it knows about me.\n\nRead it with me. Build announcements that matter for my niche. Primary blogs only. Cross-checked against my own customer signals. Not a 'here's everything Microsoft shipped' dump.\n\nThere go the tool calls, blog by blog. Twelve announcements, each tagged with its source, each checked against my actual pipeline. If I'm betting a Friday meeting on this, I want it grounded in what I actually sell." },
+    { step:"Move 2", est:"~1 min", title:"Sort: cool vs yours", ask:null,
+      say:"Now the hard one. Long list. I want a decision, not another recap.\n\nSort. Two buckets. Cool moonshots versus things that change my partner business this quarter. Brutal honesty.\n\nAnd there's the split. Left column: Solara, Majorana, MAI Image. Amazing. Not changing my customer call next week. Right column: the four I can act on. Cool makes headlines. The right column makes pipeline." },
+    { step:"Move 3", est:"~1.5 min", title:"Build me an offer + the IP", ask:null,
+      say:"Now from list to commerce. And this is the move that compounds. I'm not packaging a one-off for one customer. I want the scaffolding too.\n\nAgent 365 as a three-week sprint. Fixed price. Real deliverables. AND the reusable IP layer underneath \u00b7 playbook, inventory tool, starter pack \u00b7 so customer two next month is half the work.\n\nThere's the offer, in the browser, customer-ready. Week one inventory, week two governance, week three one agent live. But the line that matters is Your IP. That's what I carry into customer two, three, four. First deal pays for itself. Every deal after that is margin. That is how a partner business gets out of the time-for-money trap." },
+    { step:"Landing", est:"", title:"The IP compounds", ask:null,
+      say:"That's the landing. Same skill, your niche, any announcement wave. Ignite is next. The prompt pack is on the partner site, it works in any AI chat. One more press for the kicker." },
+    { step:"Ping", est:"", title:"It pays off", ask:null,
+      say:"And here's the kicker. The sprint one-pager went to two accounts the same afternoon. This is what came back. From 400+ sessions of noise to a Friday meeting with a Head of AI. One more press (or Esc) closes." }
+  ],
+  closingPing: {
+    app: "Teams",
+    from: "Nordic Bank \u00b7 Head of AI",
+    msg: "Your Agent 365 sprint one-pager landed on my desk. Exactly our blocker right now. Can you do <b>Friday 10:00</b>?",
+    note: "The payoff. The noise became a meeting."
+  }
+};
+/* =====================================================================
+   ▲▲▲  END SPEC  ▲▲▲
+   ===================================================================== */
+
+(function(){
+  const SPEC = window.DEMO_SPEC;
+  const CONFIG = SPEC.config;
+  const MOVES = SPEC.moves;
+  const PRES = SPEC.notes;
+
+  /* ----- embedded mode (?embed=1 [&exit=0]) -----
+     embed=1 · the host deck's slide IS the launch slide: skip pos 0, render
+       transparent, and at the ends post {evt:'done'} so the host closes its
+       dialog instead of dead-ending.
+     exit=0  · additionally drop the exit slide (and ping): the demo ends on
+       the last move's fire. Use when the deck already carries the landing.
+     When the engine is inlined via iframe srcdoc (single-file decks) there is
+     no query string, so the same flags are also read from the host iframe's
+     data attributes: data-td-embed and data-td-exit="0". */
+  const QP = new URLSearchParams(location.search);
+  let frameDS = null;
+  try{ frameDS = window.frameElement && window.frameElement.dataset; }catch(_){}
+  const isEmbed  = QP.get('embed') === '1' || !!(frameDS && frameDS.tdEmbed !== undefined);
+  const skipExit = isEmbed && (QP.get('exit') === '0' || !!(frameDS && frameDS.tdExit === '0'));
+  if(isEmbed) document.body.classList.add('embed');
+
+  const PING = skipExit ? null : (SPEC.closingPing || null);
+
+  /* ----- optional theme (SPEC.theme) -----
+     Lets a host deck skin the engine's slide surfaces (launch/exit, accents)
+     to its own design language without touching the engine.
+     theme.vars · map of CSS custom properties to override (e.g. "--accent").
+     theme.css  · escape-hatch stylesheet appended after the engine styles. */
+  (function(){
+    const TH = SPEC.theme;
+    if(!TH) return;
+    if(TH.vars){ const r=document.documentElement.style; for(const k in TH.vars){ r.setProperty(k, TH.vars[k]); } }
+    if(TH.css){ const st=document.createElement('style'); st.textContent=TH.css; document.head.appendChild(st); }
+  })();
+
+  /* ----- position model -----
+     Each move costs THREE positions: ARM (presenter sees the upcoming
+     script, terminal stays as it was), TYPED (the prompt is typed into
+     the input bar but Enter hasn't been pressed yet · agent silent),
+     then FIRE (Enter pressed, terminal streams the agent lines).
+     Boot uses the same three-click rhythm: ARM, TYPED (copilot --yolo
+     sitting at the prompt), FIRE (banner streams in). */
+  const FIRST_BOOT_POS = 2;
+  const POS_PER_BOOT   = 3;            // arm / typed / fire
+  const LAST_BOOT_POS  = FIRST_BOOT_POS + POS_PER_BOOT - 1;  // 4
+  const FIRST_MOVE_POS = LAST_BOOT_POS + 1;                  // 5
+  const POS_PER_MOVE   = 3;            // arm / typed / fire
+  const LAST_MOVE_POS  = FIRST_MOVE_POS + MOVES.length * POS_PER_MOVE - 1;
+  const EXIT_POS       = LAST_MOVE_POS + 1;
+  const PING_POS       = EXIT_POS + 1;
+  const MIN_POS        = isEmbed ? 1 : 0;
+  const LAST_POS       = skipExit ? LAST_MOVE_POS : (PING ? PING_POS : EXIT_POS);
+  function moveIndexFor(pos){
+    if(pos < FIRST_MOVE_POS || pos > LAST_MOVE_POS) return -1;
+    return Math.floor((pos - FIRST_MOVE_POS) / POS_PER_MOVE);
+  }
+  function moveOffset(pos){
+    if(pos < FIRST_MOVE_POS || pos > LAST_MOVE_POS) return -1;
+    return (pos - FIRST_MOVE_POS) % POS_PER_MOVE;
+  }
+  function isArmPos(pos){   return moveOffset(pos) === 0; }
+  function isTypedPos(pos){ return moveOffset(pos) === 1; }
+  function isFirePos(pos){  return moveOffset(pos) === 2; }
+  function isBootArm(pos){   return pos === FIRST_BOOT_POS; }      // 2
+  function isBootTyped(pos){ return pos === FIRST_BOOT_POS + 1; }  // 3
+  function isBootFire(pos){  return pos === FIRST_BOOT_POS + 2; }  // 4
+  // How many moves have been FIRED by the time we reach this position.
+  // ARM/TYPED don't add anything to the terminal; only FIRE does.
+  function firedMoveCount(pos){
+    if(pos < FIRST_MOVE_POS) return 0;
+    if(pos > LAST_MOVE_POS) return MOVES.length;
+    const off = moveOffset(pos);
+    const idx = moveIndexFor(pos);
+    return off === 2 ? idx + 1 : idx;
+  }
+  // Map a position to the notes[] index. One note per logical step;
+  // the three phases of boot and of each move share a single note (with
+  // up to three paragraphs in `say`, one per phase).
+  function presIndex(pos){
+    if(pos <= 1) return pos;                            // 0=setup, 1=terminal
+    if(pos >= FIRST_BOOT_POS && pos <= LAST_BOOT_POS) return 2;  // boot
+    if(pos >= FIRST_MOVE_POS && pos <= LAST_MOVE_POS) return 3 + moveIndexFor(pos);
+    if(pos === EXIT_POS) return 3 + MOVES.length;
+    if(pos === PING_POS) return 4 + MOVES.length;
+    return PRES.length - 1;
+  }
+  // Phase tag for the presenter pill. Returns 'arm' | 'typed' | 'fire' | ''.
+  function phaseFor(pos){
+    if(isBootArm(pos)   || isArmPos(pos))   return 'arm';
+    if(isBootTyped(pos) || isTypedPos(pos)) return 'typed';
+    if(isBootFire(pos)  || isFirePos(pos))  return 'fire';
+    return '';
+  }
+
+  /* ----- presenter sync (namespaced per demo) ----- */
+  const CHANNEL='terminal-demo-'+CONFIG.demoId;
+  const isPresenter = location.search.indexOf('presenter')!==-1;
+  let channel=null; try{ channel=new BroadcastChannel(CHANNEL); }catch(e){}
+
+  /* ----- refs ----- */
+  const overlay=document.getElementById('overlay');
+  const term=document.getElementById('term');
+  const launchSlide=document.getElementById('launchSlide');
+  const exitSlide=document.getElementById('exitSlide');
+  const waPing=document.getElementById('waPing');
+
+  /* ----- paint the static slide copy + chrome from spec ----- */
+  document.title='Terminal demo \u00b7 '+CONFIG.title;
+  document.getElementById('cliTitle').innerHTML='copilot &middot; '+CONFIG.cwd;
+  document.getElementById('launchKick').innerHTML=SPEC.launchSlide.kick;
+  document.getElementById('launchH1').innerHTML=SPEC.launchSlide.h1;
+  document.getElementById('launchSub').innerHTML=SPEC.launchSlide.sub;
+  document.getElementById('exitKick').innerHTML=SPEC.exitSlide.kick;
+  document.getElementById('exitH1').innerHTML=SPEC.exitSlide.h1;
+  document.getElementById('exitSub').innerHTML=SPEC.exitSlide.sub;
+  // Optional visuals · all SPEC-driven, hidden when absent.
+  (function(){
+    const lh=document.getElementById('launchHero');
+    if(SPEC.launchSlide.heroImg){ lh.src=SPEC.launchSlide.heroImg; lh.style.display='block'; lh.onerror=function(){ lh.style.display='none'; }; }
+    const eh=document.getElementById('exitHero');
+    if(SPEC.exitSlide.heroImg){ eh.src=SPEC.exitSlide.heroImg; eh.style.display='block'; eh.onerror=function(){ eh.style.display='none'; }; }
+    const sh=SPEC.exitSlide.share;
+    if(sh && sh.url){
+      document.getElementById('shareBlock').style.display='flex';
+      document.getElementById('shareUrl').textContent=sh.url;
+      document.getElementById('shareHeadline').innerHTML=sh.headline||'';
+      if(sh.label) document.getElementById('shareLbl').textContent=sh.label;
+      const q=document.getElementById('shareQr');
+      if(sh.qrImg){ q.src=sh.qrImg; } else { document.getElementById('shareQrWrap').style.display='none'; }
+    }
+  })();
+  if(PING){
+    waPing.classList.add('live');
+    document.getElementById('waApp').textContent=PING.app||'WhatsApp';
+    document.getElementById('waFrom').textContent=PING.from||'';
+    document.getElementById('waMsg').innerHTML=PING.msg||'';
+  }
+
+  /* ----- state ----- */
+  let curPos=0, animating=false, animToken=0, timers=[];
+  function T(fn,ms){ const id=setTimeout(fn,ms); timers.push(id); return id; }
+  function clearT(){ timers.forEach(clearTimeout); timers=[]; }
+  function scroll(){
+    const blocks = term.querySelectorAll('.moveblock');
+    if(blocks.length){
+      let spacer = term.querySelector('.term-spacer');
+      if(!spacer){ spacer = document.createElement('div'); spacer.className='term-spacer'; }
+      if(spacer.parentNode !== term || spacer !== term.lastElementChild){ term.appendChild(spacer); }
+      spacer.style.height = Math.round(term.clientHeight * 0.75) + 'px';
+      const last = blocks[blocks.length-1];
+      term.scrollTop = Math.max(0, last.offsetTop - 14);
+    } else {
+      const spacer = term.querySelector('.term-spacer');
+      if(spacer) spacer.remove();
+      term.scrollTop = term.scrollHeight;
+    }
+  }
+  function clearCardStage(){
+    const stage=document.getElementById('cardStage');
+    if(!stage) return;
+    stage.classList.remove('in');
+    setTimeout(function(){ if(!stage.classList.contains('in')) stage.innerHTML=''; },600);
+  }
+  function showCardStage(html){
+    const stage=document.getElementById('cardStage');
+    if(!stage) return;
+    stage.innerHTML=html;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ stage.classList.add('in'); }); });
+  }
+  function syncCardStage(pos){
+    const stage=document.getElementById('cardStage');
+    if(!stage) return;
+    if(pos<FIRST_MOVE_POS || pos>LAST_MOVE_POS){ stage.classList.remove('in'); stage.innerHTML=''; return; }
+    // TYPED: the presenter is typing in the terminal again, so the browser
+    // window has gone behind it. Card hidden from the typed phase on.
+    if(isTypedPos(pos)){ stage.classList.remove('in'); stage.innerHTML=''; return; }
+    // Show the card belonging to the most-recently-fired move.
+    // ARM positions: show the previous move's card (audience sees no change).
+    // FIRE positions: show this move's card (used by back-step renders; live anim manages its own).
+    const fired = firedMoveCount(pos);
+    if(fired<=0){ stage.classList.remove('in'); stage.innerHTML=''; return; }
+    const idx = fired - 1;
+    const m=MOVES[idx];
+    const cardLine=(m.lines||[]).find(function(l){return l.k==='card';});
+    if(!cardLine){ stage.classList.remove('in'); stage.innerHTML=''; return; }
+    stage.innerHTML=cardHTML(cardLine,true);
+    stage.classList.add('in');
+  }
+
+  /* ----- bottom input bar (pinned, like real Copilot CLI) ----- */
+  function inputSet(text){
+    const t=document.getElementById('cliTyped');
+    if(t) t.textContent=text||'';
+  }
+  function inputClear(){ inputSet(''); }
+  function inputShow(yes){
+    const bar=document.getElementById('cliInput');
+    const hint=document.querySelector('.cli-hint');
+    if(bar)  bar.style.display  = yes?'block':'none';
+    if(hint) hint.style.display = yes?'flex':'none';
+  }
+
+  /* ----- html builders ----- */
+  const CPLOGO='<svg class="cp-logo" viewBox="0 0 60 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+    '<rect x="8" y="3" width="14" height="14" rx="3" stroke="#4DD0E1" stroke-width="2.5" fill="none"/>'+
+    '<rect x="38" y="3" width="14" height="14" rx="3" stroke="#4DD0E1" stroke-width="2.5" fill="none"/>'+
+    '<rect x="10" y="20" width="10" height="10" fill="#C849A1"/><rect x="40" y="20" width="10" height="10" fill="#C849A1"/>'+
+    '<rect x="4" y="29" width="52" height="18" rx="3" fill="#C849A1"/>'+
+    '<rect x="22" y="34" width="4" height="8" fill="#39D353"/><rect x="34" y="34" width="4" height="8" fill="#39D353"/></svg>';
+
+  function bootPromptHTML(typed,caret){
+    return '<div class="boot-cmd"><span class="ps">PS '+CONFIG.cwd+'&gt;</span>'+
+      '<span class="typed" id="bootTyped">'+(typed||'')+'</span>'+
+      (caret?'<span class="caret"></span>':'')+'</div>';
+  }
+  function bannerHTML(vis){
+    const c=vis?' in':'';
+    const lines = CONFIG.bootLines || [
+      'Loaded env: .github/copilot-instructions.md',
+      'Loaded context: partner-profile.md \u00b7 niche \u00b7 solution focus',
+      'Loaded signals: 12 customer calls \u00b7 8 open deals \u00b7 last 14 days'
+    ];
+    return '<div class="cp-banner'+c+'">'+CPLOGO+'<div class="cp-brand"><div class="name">Copilot '+CONFIG.cliVer+' uses AI.</div><div class="tag">/experimental</div></div></div>'+
+      lines.map(function(t){ return '<div class="cp-status'+c+'"><span class="dot">\u25CF</span><span>'+t+'</span></div>'; }).join('')+
+      '<div class="cp-meta'+c+'"><span class="cwd">'+CONFIG.cwd+'</span><span class="model">'+CONFIG.model+'</span></div>';
+  }
+  function cardHTML(l,vis){
+    const kind=l.kind||'deck'; const d=l.data||{};
+    let inner='';
+    if(kind==='deck'){
+      inner='<div class="deckmini">'+(d.slides||[]).map(function(s){
+        return '<div class="sl'+(s.story?' story':'')+'"><b>'+s.b+'</b><span>'+s.s+'</span></div>'; }).join('')+'</div>';
+    } else if(kind==='code'){
+      inner='<div class="codemini">'+(d.lines||[]).map(function(c){
+        const cls=c.type==='add'?'add':(c.type==='del'?'del':'');
+        const g=c.type==='add'?'+':(c.type==='del'?'-':'');
+        return '<div class="cl '+cls+'"><span class="g">'+g+'</span><span class="t">'+c.t+'</span></div>'; }).join('')+'</div>';
+    } else if(kind==='dashboard'){
+      inner='<div class="dashmini">'+(d.tiles||[]).map(function(t){
+        return '<div class="tile"><b>'+t.b+'</b><span>'+t.s+'</span></div>'; }).join('')+'</div>';
+    } else if(kind==='doc'){
+      inner='<div class="docmini"><h4>'+(d.title||'')+'</h4>'+(d.paras||[]).map(function(p){
+        return p==='bar'?'<div class="bar m"></div><div class="bar s"></div>':'<p>'+p+'</p>'; }).join('')+'</div>';
+    } else if(kind==='gallery'){
+      inner='<div class="gallerymini">'+(d.tiles||[]).map(function(t){
+        const cls=t.kind==='cool'?'cool':'act';
+        const pill=t.pill||(t.kind==='cool'?'cool \u00b7 later':'yours \u00b7 this quarter');
+        const visual=t.img?'<img src="'+t.img+'" alt="">':('<span class="gicon">'+(t.icon||'')+'</span>');
+        return '<div class="gtile '+cls+'"><div class="gimg">'+visual+'</div><div class="glabel">'+t.label+'</div><span class="gpill">'+pill+'</span></div>';
+      }).join('')+'</div>';
+    }
+    const foot=d.foot?('<div class="card-foot"><span class="meta">'+d.foot+'</span>'+(d.pill?'<span class="ppill">'+d.pill+'</span>':'')+'</div>'):'';
+    // data.cls adds a custom class to the card so SPEC theme.css can restyle
+    // an individual artifact (e.g. a deck card wearing the customer's brand).
+    const cls = d.cls?' '+d.cls:'';
+    // frame:"browser" wraps ANY inner kind in browser chrome (tab strip +
+    // address bar). data.light (default true) renders a light page body.
+    const frame = l.frame || d.frame || '';
+    if(frame==='browser'){
+      const light = d.light !== false;
+      const tab = d.tab || d.title || String(d.url||'').split('/').pop() || 'New tab';
+      return '<div class="card browser'+(light?' light':'')+cls+(vis?' in':'')+'">'+
+        '<div class="br-tabs"><span class="br-tab"><span class="br-fav"></span><span class="br-tab-t">'+tab+'</span></span><span class="br-newtab">+</span></div>'+
+        '<div class="br-bar"><span class="br-nav">\u2190</span><span class="br-nav dim">\u2192</span><span class="br-nav">\u21BB</span>'+
+        '<span class="br-url"><span class="br-lock"></span>'+(d.url||'')+'</span></div>'+
+        '<div class="card-body">'+inner+foot+'</div></div>';
+    }
+    return '<div class="card'+cls+(vis?' in':'')+'"><div class="card-chrome"><span class="url">'+(d.url||'')+'</span></div>'+
+      '<div class="card-body">'+inner+foot+'</div></div>';
+  }
+  function lineHTML(l,vis){
+    const v=vis?' in':'';
+    if(l.k==='think') return '<div class="line think'+v+'">'+l.t+'</div>';
+    if(l.k==='res')   return '<div class="line res'+v+'">'+l.t+'</div>';
+    if(l.k==='mode')  return '<div class="line modepill'+v+'">\u25CF '+l.t+'</div>';
+    if(l.k==='tool')  return '<div class="line agl'+v+'"><span class="b">\u2726</span><span class="tt">'+l.tag+'</span><span class="txt">'+l.t+'</span></div>';
+    if(l.k==='card')  return cardHTML(l,vis);
+    return '';
+  }
+  function moveHTML(m,i,vis){
+    let h='<div class="moveblock'+(i===0?' first':'')+'" data-move="'+i+'">';
+    h+='<div class="move-meta">Move '+(i+1)+' \u00b7 '+m.title+' <span class="est">\u00b7 '+m.est+'</span></div>';
+    h+='<div class="ask-line"><span class="ps">\u276F</span><span class="ask">'+(vis?m.ask:'')+'</span></div>';
+    m.lines.forEach(function(l){ h+=lineHTML(l,vis); });
+    h+='</div>';
+    return h;
+  }
+  function termHTML(pos, includeCurrent){
+    if(pos<1) return '';
+    // Boot prompt: bootCmd typed from pos 3 (boot TYPED) onward.
+    // Caret blinks at pos 1,2,3 (before the banner streams), then is removed at pos 4+.
+    const showBootCmd = pos >= FIRST_BOOT_POS + 1;   // 3+
+    const showCaret   = pos <= FIRST_BOOT_POS + 1;   // 1, 2, 3
+    let h = bootPromptHTML(showBootCmd ? CONFIG.bootCmd : '', showCaret);
+    if(pos >= FIRST_BOOT_POS + 2) h += bannerHTML(true);   // 4+ shows banner
+    let count;
+    if(pos > LAST_MOVE_POS) count = MOVES.length;
+    else if(pos < FIRST_MOVE_POS) count = 0;
+    else {
+      const fired = firedMoveCount(pos);
+      // includeCurrent only matters during a live fire animation (we want the
+      // moveblock injected by animateMoveFire, not pre-rendered).
+      count = (isFirePos(pos) && includeCurrent===false) ? fired - 1 : fired;
+    }
+    for(let i=0;i<count;i++){ h += moveHTML(MOVES[i],i,true); }
+    return h;
+  }
+
+  function typewrite(node,text,speed,tok,done){
+    let i=0; node.textContent='';
+    (function tick(){
+      if(tok!==animToken) return;
+      if(i<=text.length){ node.textContent=text.slice(0,i); i++; scroll(); T(tick,speed); }
+      else if(done) done();
+    })();
+  }
+
+  /* ----- screen visibility ----- */
+  function updateScreens(pos){
+    const wantOverlay = pos>=1 && pos<=LAST_MOVE_POS;
+    launchSlide.style.display = (!isEmbed && pos<=LAST_MOVE_POS)?'flex':'none';
+    if(wantOverlay){
+      if(!overlay.classList.contains('show')){ overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); }
+    } else {
+      overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true');
+    }
+    exitSlide.classList.toggle('show', pos>=EXIT_POS);
+    if(PING){ waPing.classList.toggle('in', pos>=PING_POS); }
+    // Input bar only during move positions (boot uses the inline PS prompt).
+    inputShow(pos>=FIRST_MOVE_POS && pos<=LAST_MOVE_POS);
+    if(pos<FIRST_MOVE_POS) inputClear();
+  }
+
+  /* ----- the one render entry point ----- */
+  function renderTo(pos,animate){
+    pos=Math.max(MIN_POS,Math.min(LAST_POS,pos));
+    animToken++; const tok=animToken; clearT(); animating=false;
+    curPos=pos;
+    updateScreens(pos);
+    if(pos===0){ syncCardStage(pos); broadcast(); return; }
+    // Pure-static positions: setup (1), boot ARM (2), all move ARMs (silent
+    // for audience), all move TYPEDs when back-stepping (input bar pre-filled),
+    // and post-move positions (exit, ping).
+    const needsAnim = animate && (
+      isBootTyped(pos) || isBootFire(pos) ||
+      isTypedPos(pos)  || isFirePos(pos)
+    );
+    if(!needsAnim){
+      term.innerHTML = termHTML(pos, true);
+      // For TYPED move positions, the input bar must show the prompt sitting there.
+      if(isTypedPos(pos)){
+        const m = MOVES[moveIndexFor(pos)];
+        inputSet(m.ask);
+      } else if(pos<FIRST_MOVE_POS || pos>LAST_MOVE_POS){
+        inputClear();
+      } else if(isArmPos(pos) || isFirePos(pos)){
+        // ARM: input empty (move not started). FIRE static: also empty (post-fire).
+        inputClear();
+      }
+      scroll(); syncCardStage(pos); broadcast(); return;
+    }
+    // Animation paths.
+    if(isBootTyped(pos)){
+      term.innerHTML = termHTML(FIRST_BOOT_POS, true);  // boot ARM state: empty bootTyped + caret
+      scroll();
+      animateBootTyped(tok);
+    } else if(isBootFire(pos)){
+      term.innerHTML = termHTML(FIRST_BOOT_POS + 1, true);  // boot TYPED state: cmd typed + caret, no banner
+      scroll();
+      animateBootBanner(tok);
+    } else if(isTypedPos(pos)){
+      // Terminal content unchanged from previous move's end (or from boot fire).
+      // Render the static term for this pos · only the input bar will animate.
+      term.innerHTML = termHTML(pos, true);
+      clearCardStage();   // typing again: the browser window drops behind the terminal
+      inputClear();
+      scroll();
+      animateMoveTyped(moveIndexFor(pos), tok);
+    } else if(isFirePos(pos)){
+      term.innerHTML = termHTML(pos, false);  // through previously-fired moves only
+      syncCardStage(pos - 1);                  // keep prior card briefly · animateMoveFire dismisses
+      scroll();
+      animateMoveFire(moveIndexFor(pos), tok);
+    }
+    broadcast();
+  }
+
+  function animateBootTyped(tok){
+    animating=true;
+    const typed=document.getElementById('bootTyped');
+    typewrite(typed, CONFIG.bootCmd, CONFIG.typeBoot, tok, function(){
+      if(tok!==animToken) return;
+      // Leave the caret blinking after the command · we haven't hit Enter yet.
+      animating=false; broadcast();
+    });
+  }
+  function animateBootBanner(tok){
+    animating=true;
+    const caret=term.querySelector('.boot-cmd .caret'); if(caret) caret.remove();
+    const banner=document.createElement('div'); banner.innerHTML=bannerHTML(false);
+    while(banner.firstChild) term.appendChild(banner.firstChild);
+    const items=term.querySelectorAll('.cp-banner,.cp-status,.cp-meta');
+    let d=0;
+    items.forEach(function(n){ d+=CONFIG.bootGap; T(function(){ if(tok!==animToken) return; n.classList.add('in'); scroll(); }, d); });
+    T(function(){ if(tok!==animToken) return; animating=false; broadcast(); }, d+60);
+  }
+  function animateMoveTyped(i,tok){
+    animating=true;
+    // Type the prompt into the BOTTOM INPUT BAR and leave it sitting there.
+    const typedEl=document.getElementById('cliTyped');
+    typewrite(typedEl, MOVES[i].ask, CONFIG.typeAsk, tok, function(){
+      if(tok!==animToken) return;
+      // Prompt now visible in the input bar. Agent silent. Wait for fire.
+      animating=false; broadcast();
+    });
+  }
+  function animateMoveFire(i,tok){
+    animating=true;
+    clearCardStage();
+    inputClear();
+    // The submitted ❯ line lands together with the input clearing · this is "Enter pressed".
+    const wrap=document.createElement('div'); wrap.innerHTML=moveHTML(MOVES[i],i,true);
+    const node=wrap.firstChild; term.appendChild(node);
+    const reveals=node.querySelectorAll('.line, .card');
+    reveals.forEach(function(n){ n.classList.remove('in'); });
+    scroll();
+    let d=0;
+    reveals.forEach(function(n){
+      d+=CONFIG.lineGap;
+      T(function(){
+        if(tok!==animToken) return;
+        n.classList.add('in');
+        if(n.classList.contains('card')){ showCardStage(n.outerHTML); }
+        scroll();
+      }, d);
+    });
+    T(function(){ if(tok!==animToken) return; animating=false; broadcast(); }, d+60);
+  }
+
+  /* ----- drive ----- */
+  function notifyHost(evt, extra){
+    if(window.parent !== window){
+      var msg = {src:'terminal-demo', demoId:CONFIG.demoId, evt:evt};
+      if(extra) for(var k in extra) msg[k]=extra[k];
+      try{ window.parent.postMessage(msg, '*'); }catch(_){}
+    }
+  }
+  function advance(){
+    if(isPresenter) return;
+    if(animating){ renderTo(curPos,false); return; }
+    // Embedded: advancing past the end hands control back to the host deck.
+    if(isEmbed && curPos>=LAST_POS){ notifyHost('done', {dir:'fwd'}); return; }
+    renderTo(curPos+1,true);
+  }
+  function back(){
+    if(isPresenter) return;
+    if(animating){ renderTo(curPos,false); return; }
+    if(isEmbed && curPos<=MIN_POS){ notifyHost('done', {dir:'back'}); return; }
+    renderTo(curPos-1,false);
+  }
+  function resetDemo(){
+    // Embedded: replay the terminal slide-in on every reset/reopen.
+    if(isEmbed && overlay.classList.contains('show')){ overlay.classList.remove('show'); void overlay.offsetWidth; }
+    renderTo(MIN_POS,false);
+  }
+  // Scene boundaries: positions where the audience-visible state changes
+  // meaningfully. PageDown/PageUp jump between these (skip the arm/typed
+  // intermediates); Home/End jump to the very start or end.
+  function scenePositions(){
+    const arr = [MIN_POS===0?0:1, 1, LAST_BOOT_POS].filter(function(v,i,a){ return a.indexOf(v)===i; });
+    for(let i=0;i<MOVES.length;i++){ arr.push(FIRST_MOVE_POS + i*POS_PER_MOVE + 2); }  // each move's FIRE
+    if(!skipExit){ arr.push(EXIT_POS); if(PING) arr.push(PING_POS); }
+    return arr;
+  }
+  function nextScene(pos){
+    const sc = scenePositions();
+    for(let i=0;i<sc.length;i++) if(sc[i] > pos) return sc[i];
+    return sc[sc.length-1];
+  }
+  function prevScene(pos){
+    const sc = scenePositions();
+    for(let i=sc.length-1;i>=0;i--) if(sc[i] < pos) return sc[i];
+    return sc[0];
+  }
+  function jumpToNextScene(){ if(isPresenter) return; renderTo(nextScene(curPos), false); }
+  function jumpToPrevScene(){ if(isPresenter) return; renderTo(prevScene(curPos), false); }
+  function jumpHome(){ if(isPresenter) return; renderTo(MIN_POS, false); }
+  function jumpEnd(){  if(isPresenter) return; renderTo(LAST_POS, false); }
+
+  /* ----- presenter broadcast / view ----- */
+  /* railData + pvPayload let an EXTERNAL deck-wide presenter render this
+     demo's rail and note without owning the SPEC. The rail is gated by the
+     host to the active slide, so several demos never pile up in one deck. */
+  function railData(idx){
+    const fired = firedMoveCount(idx);
+    const active = moveIndexFor(idx);
+    // During FIRE the move is still "now" (animation in progress or just landed) ·
+    // only count as done once we've advanced PAST the fire (to next move's ARM).
+    const done   = (idx>LAST_MOVE_POS) ? MOVES.length : (isFirePos(idx) ? fired-1 : fired);
+    return MOVES.map(function(m,i){
+      let state = 'todo';
+      if(i < done) state = 'done';
+      if(i === active) state = 'now';
+      return { label:(i+1)+' \u00b7 '+m.title, state:state };
+    });
+  }
+  function pvPayload(idx){
+    const s=PRES[presIndex(idx)]||PRES[PRES.length-1];
+    // Prompt to send: during a move's phases, the move's ask wins over the
+    // note's ask (notes usually carry ask:null for moves). Mirrors renderPV.
+    const mi = moveIndexFor(idx);
+    const askToShow = (mi>=0 && phaseFor(idx)) ? MOVES[mi].ask : (s.ask||null);
+    return { demoId:CONFIG.demoId, idx:idx, total:LAST_POS, phase:phaseFor(idx),
+      step:s.step, est:s.est||'', title:s.title, ask:askToShow, say:s.say,
+      rail:railData(idx), atStart:(idx<=MIN_POS), atEnd:(idx>=LAST_POS) };
+  }
+  function broadcast(){
+    const state={type:'state', idx:curPos};
+    const pv={type:'pv', pv:pvPayload(curPos)};
+    if(channel){ try{ channel.postMessage(state); channel.postMessage(pv); }catch(e){} }
+    // Embedded transport: when the engine runs inside an iframe, mirror the
+    // same payloads to the host page via postMessage. BroadcastChannel can be
+    // unreliable across iframes on file://, postMessage always works.
+    if(window.parent !== window){
+      try{
+        window.parent.postMessage({src:'terminal-demo', demoId:CONFIG.demoId, msg:state}, '*');
+        window.parent.postMessage({src:'terminal-demo', demoId:CONFIG.demoId, msg:pv}, '*');
+      }catch(e){}
+    }
+  }
+  function escapeHTML(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function renderPV(idx){
+    const s=PRES[presIndex(idx)]||PRES[PRES.length-1];
+    const phase = phaseFor(idx);
+    const arm   = phase==='arm';
+    const typed = phase==='typed';
+    const fire  = phase==='fire';
+    const moveIdx = moveIndexFor(idx);
+    const m = (moveIdx>=0) ? MOVES[moveIdx] : null;
+
+    // Step label · clean. The big pill at top-right carries the phase.
+    document.getElementById('pvStep').textContent = s.step;
+    document.getElementById('pvEst').textContent  = s.est?('\u00b7 '+s.est):'';
+    document.getElementById('pvTitle').textContent= s.title;
+
+    // Big phase pill, 3 states · impossible to miss.
+    const phaseEl = document.getElementById('pvPhase');
+    phaseEl.className = 'pv-phase';
+    if(arm){   phaseEl.classList.add('arm');   phaseEl.textContent = 'Armed \u00b7 next click types'; }
+    if(typed){ phaseEl.classList.add('typed'); phaseEl.textContent = 'Typed \u00b7 next click fires'; }
+    if(fire){  phaseEl.classList.add('fire');  phaseEl.textContent = 'Live \u00b7 animation playing'; }
+
+    const askWrap=document.getElementById('pvAskWrap');
+    // Show the upcoming prompt at any phase of a move (or boot).
+    let askToShow = s.ask || null;
+    if(m && (arm || typed || fire)) askToShow = m.ask;
+    if(askToShow){ askWrap.style.display=''; document.getElementById('pvAsk').textContent=askToShow; }
+    else { askWrap.style.display='none'; }
+
+    // The spoken note is ALWAYS visible. Split on blank lines into paragraphs ·
+    // one per phase (ARM / TYPED / LIVE). The paragraph matching the current
+    // phase gets a left-border accent in the phase color so the presenter knows
+    // which paragraph to read. Non-phase positions render as a single paragraph.
+    const sayEl = document.getElementById('pvSay');
+    const paras = (s.say||'').split(/\n\n+/);
+    const activeIdx = arm ? 0 : (typed ? 1 : (fire ? 2 : -1));
+    sayEl.innerHTML = paras.map(function(p, i){
+      const cls = 'pv-say-p' + (i===activeIdx && phase ? ' active '+phase : '');
+      return '<p class="'+cls+'">'+escapeHTML(p)+'</p>';
+    }).join('');
+
+    const r=document.getElementById('pvRail'); r.innerHTML='';
+    const fired = firedMoveCount(idx);
+    const active = moveIndexFor(idx);
+    const done   = (idx>LAST_MOVE_POS) ? MOVES.length : (isFirePos(idx) ? fired-1 : fired);
+    MOVES.forEach(function(m,i){
+      const el=document.createElement('span'); el.className='pvr';
+      if(i<done) el.classList.add('done');
+      if(i===active) el.classList.add('now');
+      el.textContent=(i+1)+' \u00b7 '+m.title;
+      r.appendChild(el);
+    });
+  }
+  function sendCmd(action){ if(channel){ try{ channel.postMessage({type:'cmd', action:action}); }catch(e){} } }
+
+  /* ----- wire up ----- */
+  if(isPresenter){
+    document.body.classList.add('presenter');
+    renderPV(0);
+    document.getElementById('pvNext').addEventListener('click', function(){ sendCmd('advance'); });
+    document.getElementById('pvBack').addEventListener('click', function(){ sendCmd('back'); });
+    document.getElementById('pvReset').addEventListener('click', function(){ sendCmd('reset'); });
+    if(channel){
+      channel.onmessage=function(e){ if(e.data&&e.data.type==='state'){ renderPV(e.data.idx); } };
+      try{ channel.postMessage({type:'request'}); }catch(e){}
+    }
+  } else {
+    document.getElementById('launchBtn').addEventListener('click', function(){ advance(); });
+    function handleCmd(data){
+      if(!data) return;
+      if(data.type==='request'){ broadcast(); return; }
+      if(data.type==='cmd'){
+        if(data.action==='advance') advance();
+        else if(data.action==='back') back();
+        else if(data.action==='reset') resetDemo();
+        else if(data.action==='next-scene') jumpToNextScene();
+        else if(data.action==='prev-scene') jumpToPrevScene();
+        else if(data.action==='home') jumpHome();
+        else if(data.action==='end')  jumpEnd();
+      }
+    }
+    if(channel){ channel.onmessage=function(e){ handleCmd(e.data); }; }
+    // Embedded transport: a host page can drive the demo with
+    // iframe.contentWindow.postMessage({type:'cmd', action:'advance'}, '*').
+    window.addEventListener('message', function(e){
+      const d=e.data;
+      if(d && (d.type==='cmd'||d.type==='request')) handleCmd(d);
+    });
+    renderTo(MIN_POS,false);
+    // Defensive resync: re-broadcast current state every 250ms so the presenter
+    // window always catches up within a quarter second, even if a BroadcastChannel
+    // event was dropped (Chrome can throttle background windows). renderPV is
+    // idempotent so this is safe; the cost is one tiny postMessage per tick.
+    setInterval(broadcast, 250);
+  }
+
+  function openPresenter(){ const w=window.open(location.pathname+'?presenter=1&demo='+encodeURIComponent(CONFIG.demoId),'pres-'+CONFIG.demoId,'width=1180,height=720'); if(w){ T(broadcast,500); T(broadcast,1200); } }
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='p'||e.key==='P'){ if(!isPresenter){ e.preventDefault(); openPresenter(); } return; }
+    if(isPresenter){
+      if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); sendCmd('advance'); }
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); sendCmd('back'); }
+      else if(e.key==='PageDown'){ e.preventDefault(); sendCmd('next-scene'); }
+      else if(e.key==='PageUp'){ e.preventDefault(); sendCmd('prev-scene'); }
+      else if(e.key==='Home'){ e.preventDefault(); sendCmd('home'); }
+      else if(e.key==='End'){  e.preventDefault(); sendCmd('end'); }
+      else if(e.key==='r'||e.key==='R'){ e.preventDefault(); sendCmd('reset'); }
+      return;
+    }
+    if(e.key==='r'||e.key==='R'){ e.preventDefault(); resetDemo(); return; }
+    if(e.key==='Escape'){
+      e.preventDefault(); resetDemo();
+      // Embedded: tell the host so it can close its dialog/overlay too.
+      if(window.parent !== window){
+        try{ window.parent.postMessage({src:'terminal-demo', demoId:CONFIG.demoId, evt:'escape'}, '*'); }catch(_){}
+      }
+      return;
+    }
+    if(e.key==='Home'){ e.preventDefault(); jumpHome(); return; }
+    if(e.key==='End'){  e.preventDefault(); jumpEnd();  return; }
+    if(e.key==='PageDown'){ e.preventDefault(); jumpToNextScene(); return; }
+    if(e.key==='PageUp'){   e.preventDefault(); jumpToPrevScene(); return; }
+    if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); advance(); }
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); back(); }
+  });
+})();
+</script>
+</body>
+</html>

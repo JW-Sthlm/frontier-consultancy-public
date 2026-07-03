@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo 4 · GitHub Copilot app · find your gold</title>
+<!--
+  Standalone, arrow-driven mock of the GitHub Copilot APP (not the CLI).
+  Three-pane shell: left nav rail · center session transcript · right canvas panel.
+  Presenter-paced: → / Space advance, ← back, Home/End jump, R restart.
+  A/B prototype for CAIP demo 4. Not wired into the deck. Content: Aurora
+  (the partner = us) running find-your-gold against Build 2026 announcements.
+-->
+<style>
+  :root{
+    --rail:#010409; --pane:#0d1117; --panel:#0d1117; --bar:#161b22;
+    --border:#21262d; --border-2:#30363d;
+    --fg:#e6edf3; --fg-2:#c9d1d9; --muted:#7d8590; --weak:#484f58;
+    --blue:#1f6feb; --blue-fg:#58a6ff; --green:#238636; --green-fg:#3fb950;
+    --del:#f85149; --add:#3fb950;
+    --mono:'JetBrains Mono','SF Mono',ui-monospace,'Cascadia Code',Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter',sans-serif;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#000;color:var(--fg);font-family:var(--sans);overflow:hidden;font-size:14px}
+
+  /* ---------- app window ---------- */
+  .app{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--pane)}
+  .titlebar{height:38px;flex:none;display:flex;align-items:center;gap:9px;padding:0 14px;background:var(--bar);border-bottom:1px solid var(--border);-webkit-app-region:drag}
+  .titlebar .gh{width:18px;height:18px;flex:none}
+  .titlebar .appname{font-size:12.5px;color:var(--fg-2);font-weight:600}
+  .titlebar .winbtns{margin-left:auto;display:flex;gap:18px;color:var(--muted)}
+  .titlebar .winbtns span{font-size:13px;line-height:1}
+
+  .body{flex:1;min-height:0;display:grid;grid-template-columns:248px 1fr;grid-template-rows:minmax(0,1fr)}
+  /* When canvas panel is open we split the right side */
+  .body.has-canvas{grid-template-columns:248px minmax(0,1fr) minmax(0,1fr);}
+
+  /* ---------- left rail ---------- */
+  .rail{background:var(--rail);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+  .rail-top{display:flex;align-items:center;gap:12px;padding:10px 14px;color:var(--muted)}
+  .rail-top .ic{font-size:14px;cursor:default}
+  .nav{padding:6px 8px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:7px 10px;border-radius:7px;color:var(--fg-2);font-size:13.5px;cursor:default}
+  .nav-item .ic{width:17px;text-align:center;color:var(--muted);font-size:14px}
+  .nav-item.active{background:rgba(177,186,196,.08);color:var(--fg)}
+  .nav-item.active .ic{color:var(--blue-fg)}
+  .rail-sec{margin-top:14px;padding:4px 16px;display:flex;align-items:center;gap:8px}
+  .rail-sec .lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .rail-sec .acts{margin-left:auto;display:flex;gap:10px;color:var(--muted);font-size:12px}
+  .sessions{flex:1;min-height:0;overflow:hidden;padding:2px 8px}
+  .grp{display:flex;align-items:center;gap:9px;padding:7px 10px;color:var(--fg-2);font-size:13px}
+  .grp .ic{color:var(--muted);font-size:13px;width:15px;text-align:center}
+  .sess{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 12px;border-radius:7px;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sess .ic{font-size:12px;width:15px;text-align:center;flex:none}
+  .sess.branch .ic{color:#a371f7}
+  .sess.chat .ic{color:var(--muted)}
+  .sess.active{background:rgba(31,111,235,.14);color:var(--fg);box-shadow:inset 2px 0 0 var(--blue)}
+  .sess.warn .ic{color:#d29922}
+  .rail-foot{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--border)}
+  .rail-foot .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1f6feb,#a371f7);flex:none}
+  .rail-foot .nm{font-size:12.5px;color:var(--fg-2)}
+  .rail-foot .gear{margin-left:auto;color:var(--muted);font-size:13px}
+
+  /* ---------- center: session ---------- */
+  .session{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid var(--border)}
+  .sess-bar{height:46px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--border)}
+  .crumb{font-size:13px;color:var(--fg-2);font-weight:600;display:flex;align-items:center;gap:8px;min-width:0}
+  .crumb .repo{color:var(--muted);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sess-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 11px;border-radius:7px;border:1px solid var(--border-2);background:#21262d;color:var(--fg);cursor:default}
+  .btn .ic{font-size:12px}
+  .btn.run{background:transparent}
+  .btn.green{background:var(--green);border-color:#2ea043;color:#fff}
+  .btn.split{padding:5px 8px;background:transparent;border-color:transparent;color:var(--muted)}
+
+  .feed{flex:1;min-height:0;overflow-y:auto;padding:20px 22px 8px;scrollbar-width:thin;scrollbar-color:#30363d transparent}
+  .feed::-webkit-scrollbar{width:9px}.feed::-webkit-scrollbar-thumb{background:#30363d;border-radius:9px}
+  .row{opacity:0;transform:translateY(4px);transition:opacity .4s,transform .4s}
+  .row.in{opacity:1;transform:none}
+  /* user ask */
+  .ask{display:flex;gap:11px;margin:18px 0 6px}
+  .ask .uav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#1f6feb,#a371f7);flex:none}
+  .ask .txt{font-size:14.5px;color:var(--fg);line-height:1.5;padding-top:2px}
+  /* tool row */
+  .tool{display:flex;align-items:center;gap:10px;padding:3px 0;color:var(--fg-2);font-size:13px}
+  .tool .tic{width:16px;text-align:center;color:var(--muted);font-size:12px;flex:none}
+  .tool .tic.ok{color:var(--green-fg)} .tool .tic.bad{color:var(--del)}
+  .tool .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tool .lbl b{font-weight:600;color:var(--fg)}
+  .tool code{font-family:var(--mono);font-size:11.5px;background:#161b22;border:1px solid var(--border);border-radius:5px;padding:1px 5px;color:var(--fg-2)}
+  .tool .meta{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none;padding-left:12px}
+  .tool .meta .add{color:var(--add)} .tool .meta .del{color:var(--del)}
+  /* prose */
+  .say{font-size:14px;color:var(--fg-2);line-height:1.62;margin:12px 0 4px}
+  .say b{color:var(--fg);font-weight:600}
+  .say code{font-family:var(--mono);font-size:12px;background:#161b22;border:1px solid var(--border);border-radius:5px;padding:1px 5px;color:var(--fg-2)}
+  .say a{color:var(--blue-fg);text-decoration:none}
+  .think{font-size:13px;color:var(--muted);font-style:italic;margin:10px 0 2px;padding-left:2px}
+
+  /* input box */
+  .composer{flex:none;padding:10px 16px 16px;border-top:1px solid var(--border)}
+  .changes-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--green-fg);background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:999px;padding:3px 10px;margin-bottom:8px;font-family:var(--mono)}
+  .input{border:1px solid var(--border-2);border-radius:11px;background:#0d1117;padding:11px 13px}
+  .input .ph{font-size:13.5px;color:var(--muted);min-height:20px;line-height:1.45}
+  .input .ph .caret{display:inline-block;width:7px;height:15px;background:var(--blue);vertical-align:middle;margin-left:1px;animation:bl .9s steps(2) infinite}
+  .input .ph.typed{color:var(--fg)}
+  @keyframes bl{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .input-tools{display:flex;align-items:center;gap:10px;margin-top:9px;color:var(--muted)}
+  .input-tools .plus{width:22px;height:22px;border-radius:6px;border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-size:14px}
+  .input-tools .pick{font-size:12px;display:inline-flex;align-items:center;gap:4px}
+  .input-tools .right{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13px}
+
+  /* ---------- right: canvas panel ---------- */
+  .canvaspanel{display:none;flex-direction:column;min-width:0;min-height:0;background:var(--panel)}
+  .body.has-canvas .canvaspanel{display:flex}
+  .tabbar{height:46px;flex:none;display:flex;align-items:center;gap:4px;padding:0 10px;border-bottom:1px solid var(--border)}
+  .tab{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:7px 7px 0 0;font-size:12.5px;color:var(--muted);cursor:default;border-bottom:2px solid transparent}
+  .tab .ic{font-size:12px}
+  .tab .ct{font-family:var(--mono);font-size:11px;color:var(--green-fg)}
+  .tab.active{color:var(--fg);border-bottom-color:var(--blue)}
+  .tab.add{color:var(--muted)}
+  .tabbar .layout{margin-left:auto;display:flex;gap:12px;color:var(--muted);font-size:13px}
+  .canvasbody{flex:1;min-height:0;overflow-y:auto;padding:26px 30px;scrollbar-width:thin}
+  .canvasbody::-webkit-scrollbar{width:9px}.canvasbody::-webkit-scrollbar-thumb{background:#30363d;border-radius:9px}
+  .cv{display:none;animation:cvin .4s var(--ease)}
+  .cv.show{display:block}
+  @keyframes cvin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .cv h2{font-size:21px;font-weight:700;color:var(--fg);letter-spacing:-.01em}
+  .cv .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .cv-ax{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;color:var(--blue-fg);background:rgba(31,111,235,.12);border:1px solid rgba(31,111,235,.32);margin-left:10px;vertical-align:middle}
+  .cv-ax .d{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 7px rgba(88,166,255,.9)}
+
+  /* sources canvas */
+  .srclist{margin-top:18px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .srcrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px}
+  .srcrow:last-child{border-bottom:none}
+  .srcrow .n{font-family:var(--mono);font-size:11px;color:var(--muted);width:18px;flex:none}
+  .srcrow .t{color:var(--fg-2)}
+  .srcrow .t b{color:var(--fg);font-weight:600}
+  .srcrow .src{margin-left:auto;font-size:11px;color:var(--blue-fg);font-family:var(--mono);flex:none}
+  .srcrow .chk{width:15px;height:15px;border:1.5px solid var(--border-2);border-radius:4px;flex:none}
+  .srcrow.keep .chk{background:var(--blue);border-color:var(--blue);position:relative}
+  .srcrow.keep .chk::after{content:'\2713';position:absolute;inset:0;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+
+  /* board canvas */
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .col{border:1px solid var(--border);border-radius:10px;padding:12px;background:#0b0f14}
+  .col h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .col.cool h3{color:#a371f7} .col.ours h3{color:var(--green-fg)}
+  .col .cnt{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400}
+  .bcard{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#11161d;margin-bottom:8px;font-size:13px;color:var(--fg-2)}
+  .bcard:last-child{margin-bottom:0}
+  .bcard .bi{font-size:15px}
+  .col.cool .bcard{border-color:rgba(163,113,247,.25)}
+  .col.ours .bcard{border-color:rgba(63,185,80,.28)}
+
+  /* offer canvas */
+  .offer{margin-top:18px}
+  .wk{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+  .wk .tag{font-family:var(--mono);font-size:10.5px;color:var(--blue-fg);background:rgba(31,111,235,.1);border:1px solid rgba(31,111,235,.3);border-radius:6px;padding:3px 9px;height:fit-content;flex:none;min-width:62px;text-align:center}
+  .wk .d{font-size:13px;color:var(--fg-2);line-height:1.5}
+  .wk.ip .tag{color:var(--green-fg);background:rgba(63,185,80,.1);border-color:rgba(63,185,80,.3)}
+  .wk.ip .d b{color:var(--green-fg)}
+  .priceband{display:flex;align-items:center;gap:12px;margin-top:16px;padding:13px 15px;border:1px solid var(--border-2);border-radius:9px;background:#0b0f14}
+  .priceband .k{font-size:12px;color:var(--muted)}
+  .priceband .v{font-size:18px;font-weight:700;color:var(--fg);font-family:var(--mono)}
+  .priceband .ed{margin-left:auto;font-size:11.5px;color:var(--blue-fg)}
+  .cv-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .cv-btn{font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:8px;border:1px solid var(--border-2);background:#21262d;color:var(--fg);cursor:default}
+  .cv-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  .cv-btn.done{background:var(--green);border-color:#2ea043;color:#fff}
+
+  /* approved toast */
+  .toast{position:fixed;top:96px;right:24px;z-index:40;display:none;align-items:flex-start;gap:13px;background:#1b2430;border:1px solid rgba(63,185,80,.45);border-radius:13px;padding:17px 19px;box-shadow:0 24px 60px rgba(0,0,0,.6);max-width:430px}
+  .toast.in{display:flex;animation:tin .55s var(--ease)}
+  @keyframes tin{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
+  .toast .ti{width:36px;height:36px;border-radius:9px;background:#5059C9;flex:none;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff}
+  .toast .ta{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .toast .tm{font-size:15px;color:var(--fg);line-height:1.5;margin-top:4px}
+  .toast .tm b{font-weight:700}
+
+  /* presenter hint */
+  .hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:30;font-family:var(--mono);font-size:10.5px;color:var(--weak);letter-spacing:.04em;opacity:.7}
+  .hint kbd{background:#161b22;border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--muted);margin:0 1px}
+
+  /* embedded in the deck (td-dialog iframe): the app window slides in over the
+     live slide, alt-tab style, the same way the terminal demos do. */
+  body.embed{background:transparent}
+  body.embed .hint{display:none}
+  .app.slidein{animation:appin .42s var(--ease)}
+  @keyframes appin{from{opacity:0;transform:translateY(2.2%) scale(.985)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="titlebar">
+    <svg class="gh" viewBox="0 0 16 16" fill="#e6edf3" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    <span class="appname">GitHub Copilot</span>
+    <div class="winbtns"><span>&#8211;</span><span>&#9633;</span><span>&#10005;</span></div>
+  </div>
+
+  <div class="body" id="body">
+    <!-- LEFT RAIL -->
+    <div class="rail">
+      <div class="rail-top"><span class="ic">&#9776;</span><span class="ic">&#8592;</span><span class="ic">&#8594;</span></div>
+      <div class="nav">
+        <div class="nav-item"><span class="ic">&#9750;</span>Home</div>
+        <div class="nav-item active"><span class="ic">&#9783;</span>My work</div>
+        <div class="nav-item"><span class="ic">&#9881;</span>Automations</div>
+        <div class="nav-item"><span class="ic">&#9906;</span>Search</div>
+      </div>
+      <div class="rail-sec"><span class="lbl">Sessions</span><span class="acts"><span>&#9662;</span><span>+</span></span></div>
+      <div class="sessions">
+        <div class="grp"><span class="ic">&#9685;</span>Quick chats</div>
+        <div class="sess chat"><span class="ic">&#128172;</span>What can you do for me today</div>
+        <div class="sess chat"><span class="ic">&#128172;</span>What did Nordwind say about pricing</div>
+        <div class="sess chat"><span class="ic">&#128172;</span>Why does an HTML deck beat a PPT</div>
+        <div class="grp"><span class="ic">&#128193;</span>aurora/partner-monday</div>
+        <div class="sess branch active"><span class="ic">&#9095;</span>find your gold</div>
+        <div class="sess branch"><span class="ic">&#9095;</span>Nordwind kickoff deck</div>
+        <div class="sess branch"><span class="ic">&#9095;</span>Helios kiosk feasibility</div>
+        <div class="grp"><span class="ic">&#128193;</span>aurora/agent-365-sprint</div>
+        <div class="sess branch"><span class="ic">&#9095;</span>governance playbook</div>
+        <div class="sess branch warn"><span class="ic">&#9888;</span>inventory tool · new</div>
+      </div>
+      <div class="rail-foot"><span class="av"></span><span class="nm">Aurora · you</span><span class="gear">&#9881;</span></div>
+    </div>
+
+    <!-- CENTER SESSION -->
+    <div class="session">
+      <div class="sess-bar">
+        <div class="crumb">find your gold <span class="repo">&middot; aurora/partner-monday</span></div>
+        <div class="sess-actions">
+          <span class="btn run"><span class="ic">&#9654;</span>Run</span>
+          <span class="btn"><span class="ic">&#8599;</span>Open <span style="color:var(--muted)">&#9662;</span></span>
+          <span class="btn green"><span class="ic">&#9095;</span>Create PR</span>
+          <span class="btn split">&#9707;</span>
+        </div>
+      </div>
+      <div class="feed" id="feed">
+        <!-- rows injected by JS -->
+      </div>
+      <div class="composer">
+        <span class="changes-pill" id="changesPill" style="display:none">&#9635; Changes <span id="changesN">+0</span></span>
+        <div class="input">
+          <div class="ph" id="ph"><span id="phText"></span><span class="caret" id="caret"></span></div>
+          <div class="input-tools">
+            <span class="plus">+</span>
+            <span class="pick">Interactive &#9662;</span>
+            <span class="pick">Auto &#9662;</span>
+            <span class="right"><span>&#9711;</span><span>&#127908;</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT CANVAS PANEL -->
+    <div class="canvaspanel">
+      <div class="tabbar">
+        <span class="tab"><span class="ic">&#9635;</span>Changes <span class="ct" id="tabChanges">+0</span></span>
+        <span class="tab"><span class="ic">&#9646;</span>Terminal</span>
+        <span class="tab active"><span class="ic">&#9783;</span><span id="tabCanvasName">find your gold</span></span>
+        <span class="tab add">+</span>
+        <span class="layout"><span>&#9707;</span><span>&#9974;</span></span>
+      </div>
+      <div class="canvasbody">
+        <!-- canvas 1: sources -->
+        <div class="cv" id="cv-src">
+          <h2>Build 2026 &middot; source list<span class="cv-ax"><span class="d"></span>shared &middot; you + agent</span></h2>
+          <div class="sub">12 agentic announcements, cross-checked against Aurora's accounts. Every source linked.</div>
+          <div class="srclist">
+            <div class="srcrow keep"><span class="chk"></span><span class="n">1</span><span class="t"><b>Microsoft Foundry</b> &middot; hosted agents, toolboxes, memory</span><span class="src">devblogs</span></div>
+            <div class="srcrow keep"><span class="chk"></span><span class="n">2</span><span class="t"><b>GitHub Copilot app</b> &middot; My Work, Canvas, Agent Merge</span><span class="src">github.blog</span></div>
+            <div class="srcrow keep"><span class="chk"></span><span class="n">3</span><span class="t"><b>Microsoft Discovery</b> &middot; GA + Discovery app preview</span><span class="src">azure</span></div>
+            <div class="srcrow keep"><span class="chk"></span><span class="n">4</span><span class="t"><b>Agent 365</b> &middot; identity, security, lifecycle</span><span class="src">tech community</span></div>
+            <div class="srcrow keep"><span class="chk"></span><span class="n">5</span><span class="t"><b>Agent Framework 1.0</b> &middot; .NET + Python GA</span><span class="src">devblogs</span></div>
+            <div class="srcrow"><span class="chk"></span><span class="n">6</span><span class="t">Project Solara &middot; AI-native hardware concept</span><span class="src">keynote</span></div>
+          </div>
+          <div class="cv-controls"><span class="cv-btn primary">Open all sources</span><span class="cv-btn">Keep only my niche</span></div>
+        </div>
+
+        <!-- canvas 2: board -->
+        <div class="cv" id="cv-board">
+          <h2>Impact board<span class="cv-ax"><span class="d"></span>shared &middot; you + agent</span></h2>
+          <div class="sub">Cool moonshots versus what changes Aurora's business this quarter. Drag a card to move it.</div>
+          <div class="board">
+            <div class="col cool"><h3>Cool &middot; later<span class="cnt">4</span></h3>
+              <div class="bcard"><span class="bi">&#128760;</span>Project Solara</div>
+              <div class="bcard"><span class="bi">&#9883;</span>Majorana 2</div>
+              <div class="bcard"><span class="bi">&#127912;</span>MAI Image / Voice</div>
+              <div class="bcard"><span class="bi">&#129516;</span>Frontier Tuning &middot; Mayo</div>
+            </div>
+            <div class="col ours"><h3>Ours &middot; this quarter<span class="cnt">4</span></h3>
+              <div class="bcard"><span class="bi">&#128736;</span>GitHub Copilot app</div>
+              <div class="bcard"><span class="bi">&#128737;</span>Agent 365</div>
+              <div class="bcard"><span class="bi">&#127981;</span>Foundry Hosted Agents</div>
+              <div class="bcard"><span class="bi">&#129521;</span>Copilot SDK</div>
+            </div>
+          </div>
+          <div class="cv-controls"><span class="cv-btn primary">Move card to ours</span><span class="cv-btn">Hide moonshots</span></div>
+        </div>
+
+        <!-- canvas 3: offer -->
+        <div class="cv" id="cv-offer">
+          <h2>Agent 365 Readiness Sprint<span class="cv-ax"><span class="d"></span>shared &middot; you + agent</span></h2>
+          <div class="sub">3 weeks &middot; fixed price &middot; reusable IP underneath. Yours to edit before it ships.</div>
+          <div class="offer">
+            <div class="wk"><span class="tag">Week 1</span><span class="d">Inventory the customer's agents. Map to Entra, Purview, Defender. Flag the 5 biggest gaps.</span></div>
+            <div class="wk"><span class="tag">Week 2</span><span class="d">Governance baseline. Identity model, lifecycle policy, approval workflow. Real deliverables, not slides.</span></div>
+            <div class="wk"><span class="tag">Week 3</span><span class="d">One production agent live end-to-end. Hand over the runbook. Train the team.</span></div>
+            <div class="wk ip"><span class="tag">Your IP</span><span class="d"><b>Governance playbook, inventory tool, agent starter pack</b> &middot; reused on customer 2, 3, 4.</span></div>
+          </div>
+          <div class="priceband"><span class="k">Price band</span><span class="v" id="priceV">&euro;48&ndash;60k</span><span class="ed">edit</span></div>
+          <div class="cv-controls"><span class="cv-btn primary" id="approveBtn">Approve offer</span><span class="cv-btn">Edit price band</span><span class="cv-btn">Add to My work</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="ti">T</span>
+  <div><div class="ta">Teams &middot; now</div><div class="tm" id="toastMsg"></div></div>
+</div>
+
+<div class="hint"><kbd>&#8594;</kbd>/<kbd>space</kbd> advance &nbsp; <kbd>&#8592;</kbd> back &nbsp; <kbd>Home</kbd>/<kbd>End</kbd> jump &nbsp; <kbd>R</kbd> restart</div>
+
+<script>
+(function(){
+  const feed = document.getElementById('feed');
+  const body = document.getElementById('body');
+  const ph = document.getElementById('phText');
+  const caret = document.getElementById('caret');
+  const changesPill = document.getElementById('changesPill');
+  const changesN = document.getElementById('changesN');
+  const tabChanges = document.getElementById('tabChanges');
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  const approveBtn = document.getElementById('approveBtn');
+
+  // ── deck host contract (terminal-demo skill) ──────────────────────────────
+  // When this mock is inlined into the CAIP deck it runs inside a td-dialog
+  // iframe (data-td-embed). It then speaks the same postMessage protocol the
+  // terminal-demo engine uses, so the deck's presenter takeover and linear
+  // arrow navigation drive it identically to the three terminal demos.
+  const DEMO_ID = 'caip-demo4-app';
+  const appEl = document.querySelector('.app');
+  let frameDS = null;
+  try{ frameDS = window.frameElement && window.frameElement.dataset; }catch(_){}
+  const isEmbed = !!(frameDS && frameDS.tdEmbed !== undefined) ||
+                  new URLSearchParams(location.search).get('embed') === '1';
+  if(isEmbed) document.body.classList.add('embed');
+
+  // tool-row helper builders
+  function ask(t){ return '<div class="row ask"><span class="uav"></span><span class="txt">'+t+'</span></div>'; }
+  function think(t){ return '<div class="row think">'+t+'</div>'; }
+  function tool(o){
+    const cls = o.state==='bad'?' bad':(o.state==='ok'?' ok':'');
+    const ico = o.state==='bad'?'\u2715':(o.state==='ok'?'\u2713':(o.ic||'\u25CB'));
+    let lbl = '<b>'+o.t+'</b>';
+    if(o.s) lbl += ' '+o.s;
+    if(o.code) lbl = '<b>'+o.t+'</b> <code>'+o.code+'</code>';
+    const meta = o.meta?('<span class="meta">'+o.meta+'</span>'):'';
+    return '<div class="row tool"><span class="tic'+cls+'">'+ico+'</span><span class="lbl">'+lbl+'</span>'+meta+'</div>';
+  }
+  function say(t){ return '<div class="row say">'+t+'</div>'; }
+
+  // STEP MODEL ---------------------------------------------------------------
+  // Each step appends transcript HTML and/or sets the active canvas + state.
+  // Steps are cumulative; back-stepping re-renders from scratch up to N.
+  const ASK1 = "Find the Build 2026 announcements that matter for my niche. Primary blogs only. Cross-check against my recent customer signals.";
+  const ASK2 = "Now sort them on the canvas. Two columns. Cool moonshots versus things that change Aurora's business this quarter.";
+  const ASK3 = "Take Agent 365. Package it as a three-week, fixed-price offer, and build the reusable IP underneath so customer two is half the work.";
+
+  const STEPS = [
+    // 0 · app open, no canvas, prompt empty
+    { canvas:null, changes:0, input:'', feed:'' },
+    // 1 · ask 1 typed into the input
+    { canvas:null, changes:0, input:ASK1, feed:'' },
+    // 2 · ask 1 sent · agent works · sources canvas opens
+    { canvas:'src', changes:0, input:'', name:'Build 2026 sources', feed:
+        ask(ASK1)
+      + think('profile loaded, niche locked. now find the news and put it where we can both work on it\u2026')
+      + tool({ic:'\u2197',t:'Fetch',s:'devblogs.microsoft.com/foundry',meta:'recap'})
+      + tool({ic:'\u2197',t:'Fetch',s:'github.blog',meta:'copilot app'})
+      + tool({ic:'\u2197',t:'Fetch',s:'azure.microsoft.com/blog',meta:'discovery GA'})
+      + tool({state:'ok',t:'Cross-checked',s:'12 announcements against Aurora accounts',meta:'12 items'})
+      + tool({ic:'\u25C9',t:'Created canvas',s:'Build 2026 source list',meta:'side panel'})
+      + say("12 announcements, each tagged with its source, opened as a canvas on the right. It's a shared surface, so steer it: <b>keep only my niche</b>, or open every source, right on the canvas.") },
+    // 3 · ask 2 typed
+    { canvas:'src', changes:0, input:ASK2, name:'Build 2026 sources', feed:null },
+    // 4 · ask 2 sent · board canvas
+    { canvas:'board', changes:0, name:'Impact board', feed:
+        ask(ASK2)
+      + tool({ic:'\u25C9',t:'Updated canvas',s:'split into two columns',meta:'board'})
+      + tool({state:'ok',t:'Scored',s:'4 moonshots \u00b7 4 acting \u00b7 4 middle',meta:'12 items'})
+      + say("The canvas rearranges into a board. Left, the moonshots. Right, the four Aurora can act on this quarter. Disagree? <b>Drag a card yourself</b> and the agent picks up from there.") },
+    // 5 · ask 3 typed
+    { canvas:'board', changes:0, input:ASK3, name:'Impact board', feed:null },
+    // 6 · ask 3 sent · offer canvas + changes
+    { canvas:'offer', changes:1014, name:'Agent 365 Sprint', feed:
+        ask(ASK3)
+      + think('a real offer needs the artefact AND the IP that compounds across customers\u2026')
+      + tool({ic:'\u25F1',t:'Plan',s:'3-week scope \u00b7 deliverables \u00b7 price band \u00b7 IP layer',meta:'36 lines'})
+      + tool({ic:'\u2692',t:'Scaffold',s:'playbook \u00b7 inventory tool \u00b7 agent starter pack',meta:'+979 \u22125'})
+      + tool({ic:'\u25C9',t:'Created canvas',s:'Agent 365 Readiness Sprint',meta:'yours to edit'})
+      + say("The offer opens as a canvas document. Three weeks, fixed price, and the line that matters: <b>your IP</b>. Playbook, inventory tool, starter pack. Customer two is half the work. The controls are the senior's job: <b>approve</b>, edit the price, add it to My Work.") },
+    // 7 · approved
+    { canvas:'offer', changes:1014, approved:true, name:'Agent 365 Sprint', feed:
+        tool({state:'ok',t:'Offer approved',s:'by you \u00b7 added to My Work',meta:'done'})
+      + say("Approved. <b>One number, one click.</b> The senior judgment happened on the surface, not in a re-prompt. First deal pays for itself. Every deal after is margin.") },
+    // 8 · inbound Teams ping, revealed on the presenter's cue
+    { canvas:'offer', changes:1014, approved:true, name:'Agent 365 Sprint', feed:null, toast:true }
+  ];
+  const LAST = STEPS.length - 1;
+  let pos = 0;
+
+  // ── presenter rail + script (mirrored to the deck's takeover panel) ────────
+  const RAIL = ['Pull the source', 'Sort cool vs ours', 'Offer + the IP'];
+  const PRES = [
+    // 0 · app open
+    { step:'Open', title:'The Copilot app, not the terminal', phase:null, done:0, now:-1,
+      say:"Same agent you saw in the CLI. Different surface. This is the GitHub Copilot app, in preview. The left rail is My Work, every session in one place. Tell them: anything here also runs in the CLI. The app just makes the canvas visible." },
+    // 1 · ask 1 typed
+    { step:'Move 1', title:'Pull the source', phase:'typed', ask:ASK1, done:0, now:0,
+      say:"First prompt is typed, not sent yet. The agent already knows Aurora's niche from the profile. Next click sends it." },
+    // 2 · ask 1 sent · sources canvas
+    { step:'Move 1', title:'Sources on a canvas', phase:'fire', done:0, now:0,
+      say:"Twelve announcements, each linked to its source, opened as a canvas on the right. Shared surface. Steer it on the spot: keep only my niche, or open every source." },
+    // 3 · ask 2 typed
+    { step:'Move 2', title:'Sort cool vs ours', phase:'typed', ask:ASK2, done:1, now:1,
+      say:"Second prompt. Cool moonshots versus what changes the business this quarter. Next click sends it." },
+    // 4 · ask 2 sent · board canvas
+    { step:'Move 2', title:'The impact board', phase:'fire', done:1, now:1,
+      say:"The canvas rearranges into a board. Left, the moonshots. Right, what Aurora can act on now. Disagree? Drag a card and the agent picks up from there." },
+    // 5 · ask 3 typed
+    { step:'Move 3', title:'Offer + the IP', phase:'typed', ask:ASK3, done:2, now:2,
+      say:"Third prompt. Package Agent 365 as a fixed-price offer, and build the reusable IP underneath so customer two is half the work. Next click sends it." },
+    // 6 · ask 3 sent · offer canvas
+    { step:'Move 3', title:'Offer as a canvas doc', phase:'fire', done:2, now:2,
+      say:"The offer opens as an editable canvas document. Three weeks, fixed price, and the line that matters: your IP. The controls are the senior's job. Approve, edit the price, add to My Work." },
+    // 7 · approved
+    { step:'Approve', title:'One number, one click', phase:'fire', done:3, now:-1,
+      say:"Approved. The senior judgment happened on the surface, not in a re-prompt. First deal pays for itself, every deal after is margin. Hold here. The next click is the proof." },
+    // 8 · inbound teams ping (manual reveal)
+    { step:'Inbound', title:'The reply that sells it', phase:'fire', done:3, now:-1,
+      say:"On your cue, the reply lands. Nordic Bank, Head of AI, wants the Friday slot. That is what the offer buys. The prompt pack behind all this is the gift: jw-sthlm.github.io/build-2026-gold. App, CLI, any AI chat. One more click closes back to the slide." }
+  ];
+
+  function typeInto(text, tok){
+    let i=0; ph.textContent='';
+    if(!text){ caret.style.display='none'; ph.parentElement.classList.remove('typed'); return; }
+    caret.style.display='inline-block';
+    ph.parentElement.classList.add('typed');
+    (function tick(){
+      if(tok!==animTok) return;
+      if(i<=text.length){ ph.textContent=text.slice(0,i); i++; setTimeout(tick,18); }
+    })();
+  }
+
+  let animTok=0;
+  let shownCanvas=null;   // canvas content currently on screen
+  const STAGGER=120;      // ms between consecutive row reveals
+  function render(n, animate){
+    animTok++; const tok=animTok;
+    pos = Math.max(0, Math.min(LAST, n));
+    // rebuild feed cumulatively; remember the boundary at this step so only the
+    // rows this step adds get animated (older rows are already on screen)
+    let html='', prevHtml='';
+    let canvas=null, changes=0, input='', name='find your gold', approved=false, toastOn=false;
+    for(let i=0;i<=pos;i++){
+      const s=STEPS[i];
+      if(i===pos) prevHtml=html;
+      if(s.feed!==null && s.feed!==undefined) html += s.feed;
+      if(s.canvas!==undefined) canvas=s.canvas;
+      if(s.changes!==undefined) changes=s.changes;
+      if(s.name) name=s.name;
+      if(s.approved) approved=true;
+      if(s.toast) toastOn=true;
+      input = (s.input!==undefined)? s.input : '';
+    }
+    feed.innerHTML = html;
+
+    // reveal rows: carried-over rows appear at once, only this step's new rows
+    // stream in (and only when moving forward) so earlier replies never re-animate
+    const prevCount=(prevHtml.match(/class="row/g)||[]).length;
+    const rows=feed.querySelectorAll('.row');
+    const newCount=rows.length-prevCount;
+    rows.forEach(function(r,idx){
+      if(idx<prevCount || !animate) r.classList.add('in');
+      else setTimeout(function(){ if(tok===animTok) r.classList.add('in'); }, (idx-prevCount)*STAGGER);
+    });
+    feed.scrollTop = feed.scrollHeight;
+
+    // canvas panel: reserve the column right away (the reply never reflows), but
+    // when a step both streams a reply and swaps the canvas, hold the swap until
+    // the reply has landed, so the agent narrates the canvas before it appears
+    body.classList.toggle('has-canvas', !!canvas);
+    function showCanvas(){
+      shownCanvas=canvas;
+      ['src','board','offer'].forEach(function(id){
+        document.getElementById('cv-'+id).classList.toggle('show', canvas===id);
+      });
+      document.getElementById('tabCanvasName').textContent = name;
+    }
+    if(animate && canvas!==shownCanvas && newCount>0){
+      setTimeout(function(){ if(tok===animTok) showCanvas(); }, Math.max(0,newCount-2)*STAGGER);
+    } else {
+      showCanvas();
+    }
+
+    // changes pill
+    if(changes>0){ changesPill.style.display='inline-flex'; changesN.textContent='+'+changes; tabChanges.textContent='+'+changes; }
+    else { changesPill.style.display='none'; tabChanges.textContent='+0'; }
+
+    // input typing
+    typeInto(input, tok);
+
+    // approved state
+    if(approved){ approveBtn.textContent='\u2713 Approved'; approveBtn.classList.add('done'); approveBtn.classList.remove('primary'); }
+    else { approveBtn.textContent='Approve offer'; approveBtn.classList.remove('done'); approveBtn.classList.add('primary'); }
+
+    // inbound teams ping is its own step, so the presenter reveals it with the next advance
+    if(toastOn){
+      toastMsg.innerHTML = "<b>Nordic Bank &middot; Head of AI:</b> Your Agent 365 sprint one-pager landed on my desk. Exactly our blocker. Friday 10:00?";
+      if(animate) setTimeout(function(){ if(tok===animTok) toast.classList.add('in'); }, 180);
+      else toast.classList.add('in');
+    } else { toast.classList.remove('in'); }
+
+    broadcast();
+  }
+
+  // ── host messaging ────────────────────────────────────────────────────────
+  function pvPayload(){
+    const p = PRES[pos] || PRES[PRES.length-1];
+    const rail = RAIL.map(function(m,i){
+      let st='todo'; if(i<p.done) st='done'; if(i===p.now) st='now';
+      return { label:(i+1)+' \u00b7 '+m, state:st };
+    });
+    return { demoId:DEMO_ID, idx:pos, total:LAST, phase:p.phase||null,
+      step:p.step||'', est:'', title:p.title||'', ask:p.ask||null,
+      say:p.say||'', rail:rail, atStart:(pos<=0), atEnd:(pos>=LAST) };
+  }
+  function broadcast(){
+    if(window.parent===window) return;
+    try{
+      window.parent.postMessage({src:'terminal-demo', demoId:DEMO_ID, msg:{type:'state', idx:pos}}, '*');
+      window.parent.postMessage({src:'terminal-demo', demoId:DEMO_ID, msg:{type:'pv', pv:pvPayload()}}, '*');
+    }catch(e){}
+  }
+  function notifyHost(evt, extra){
+    if(window.parent===window) return;
+    var m={src:'terminal-demo', demoId:DEMO_ID, evt:evt};
+    if(extra) for(var k in extra) m[k]=extra[k];
+    try{ window.parent.postMessage(m, '*'); }catch(_){}
+  }
+  function replaySlideIn(){
+    if(!isEmbed || !appEl) return;
+    appEl.classList.remove('slidein'); void appEl.offsetWidth; appEl.classList.add('slidein');
+  }
+
+  // Embedded: advancing past the last step (or back past the first) hands
+  // control to the deck so its linear navigation continues to the next slide.
+  function advance(){ if(pos<LAST) render(pos+1, true); else if(isEmbed) notifyHost('done',{dir:'fwd'}); }
+  function back(){ if(pos>0) render(pos-1, false); else if(isEmbed) notifyHost('done',{dir:'back'}); }
+
+  function handleCmd(d){
+    if(!d) return;
+    if(d.type==='request'){ broadcast(); return; }
+    if(d.type!=='cmd') return;
+    if(d.action==='advance') advance();
+    else if(d.action==='back') back();
+    else if(d.action==='reset'){ replaySlideIn(); render(0,false); }
+    else if(d.action==='home') render(0,false);
+    else if(d.action==='end') render(LAST,false);
+    else if(d.action==='next-scene') advance();
+    else if(d.action==='prev-scene') back();
+  }
+  window.addEventListener('message', function(e){
+    var d=e.data;
+    if(d && (d.type==='cmd'||d.type==='request')) handleCmd(d);
+  });
+
+  // Standalone keyboard control (when opened directly, not inside the deck).
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '||e.key==='Enter'){ e.preventDefault(); advance(); }
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); back(); }
+    else if(e.key==='Home'){ e.preventDefault(); render(0,false); }
+    else if(e.key==='End'){ e.preventDefault(); render(LAST,false); }
+    else if(e.key==='r'||e.key==='R'){ e.preventDefault(); replaySlideIn(); render(0,false); }
+    else if(e.key==='Escape'){ if(isEmbed){ render(0,false); notifyHost('escape'); } }
+  });
+
+  if(isEmbed){ replaySlideIn(); setInterval(broadcast, 250); }
+  render(0,false);
+})();
+</script>
+</body>
+</html>
