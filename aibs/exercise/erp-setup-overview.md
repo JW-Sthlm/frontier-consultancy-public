@@ -10,7 +10,7 @@ This is the prep page for the **ERP (F&O) exercise**. Allow 20 minutes on your o
 - The **MS Learn MCP server** configured in VS Code
 - **Python** installed locally (required for working with Excel files)
 - A **Dynamics 365 Tier 2 environment or a UDE environment** connected to Dataverse (a Tier 1 / CHE environment is not sufficient)
-- The **Copilot instructions file** and **WHS skill file** placed in your VS Code workspace (see check 5 below)
+- The **Copilot instructions file**, **WHS skill file**, and **Business Process Catalog workbook** placed in your VS Code workspace (see check 5 below)
 
 ---
 
@@ -49,9 +49,11 @@ You need a Dynamics 365 environment where you can create a new legal entity (`za
 - **Tier 2 (Standard Acceptance Testing)** or **UDE (Unified Development Environment)** - both are connected to Dataverse and will work.
 - A **Tier 1 (cloud-hosted or developer VM)** or **CHE (Cloud-Hosted Environment)** is **not sufficient** - these are not connected to Dataverse and the ERP MCP will not function correctly.
 
-### 5. The Copilot instructions and skill files are in your workspace
+### 5. The Copilot instructions, skill, and Business Process Catalog are in your workspace
 
-Two files must be present in your VS Code workspace before the exercise starts. They configure Copilot's behaviour and enable the warehouse management skill.
+Two IP files and one reference workbook must be present in your VS Code workspace before the exercise starts. The IP files configure Copilot's behaviour and enable the warehouse management skill; the Business Process Catalog is the knowledge source those skills map their configuration steps to.
+
+**a) Copilot instructions and skill files**
 
 Download them from the [implementation-ip/](implementation-ip/) folder in this exercise and place them as follows in your workspace root:
 
@@ -60,7 +62,21 @@ Download them from the [implementation-ip/](implementation-ip/) folder in this e
 | `implementation-ip/copilot-instructions.md` | `.github/copilot-instructions.md` |
 | `implementation-ip/skills/warehouse-management-only-mode-configuration/skill.md` | `.github/skills/warehouse-management-only-mode-configuration/skill.md` |
 
-To verify: open VS Code in your workspace folder and confirm both files exist at the paths above. If the `.github/` folder does not exist yet, create it.
+If the `.github/` folder does not exist yet, create it.
+
+**b) Business Process Catalog (BPC)**
+
+The [Business Process Catalog](https://learn.microsoft.com/en-us/dynamics365/guidance/business-processes/about) is Microsoft's structured catalog of standard end-to-end Dynamics 365 business processes, organised by area and process group. It ships as an Excel workbook and is the reference data the skill files (and the [ERP Skill Builder](erp-skillbuilder.md)) draw on.
+
+Download it and add it to your workspace:
+
+1. Open **<https://aka.ms/BusinessProcessCatalog>**. The link resolves to the BPC folder on GitHub.
+2. GitHub can't preview `.xlsx` files, so open the workbook's page and choose **Download raw file** to save the latest version locally.
+3. Copy it into your workspace at `reference/business-process-catalog.xlsx` (create the `reference/` folder if it doesn't exist). Adjust the path if your repo uses a different convention — just remember where you placed it.
+
+> **Keep it current:** Microsoft refreshes the catalog at least four times a year. Download a fresh copy rather than reusing an old cached one.
+
+To verify: confirm all three files exist in your workspace at the paths above, and that Python can open the workbook (see check 6).
 
 > **About the WHS skill:** The warehouse management skill provided here is a sample for this exercise. It covers WHS-Only mode configuration for Dynamics 365 Supply Chain Management. If you want to build skill files for other F&O modules — Accounts Payable, Fixed Assets, Project Management and Accounting, and others — use the [ERP Skill Builder](erp-skillbuilder.md). It provides a prompt that generates a complete skill file for any module using the Business Process Catalog and the MS Learn MCP server as knowledge sources.
 
@@ -85,6 +101,7 @@ If Python is not installed, download it from [python.org](https://www.python.org
 | D365 ERP MCP not configured | Follow the [ERP MCP setup guide](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/copilot/mcp-server-vscode) or ask your facilitator |
 | MS Learn MCP not configured | Follow the [MS Learn MCP setup guide](https://learn.microsoft.com/en-us/microsoftlearn-mcp/overview) or ask your facilitator |
 | Copilot instructions or skill files missing | Download from the `implementation-ip/` folder in this repo and place them at the paths shown in check 5 |
+| Business Process Catalog missing | Download from [https://aka.ms/BusinessProcessCatalog](https://aka.ms/BusinessProcessCatalog) (use **Download raw file**) and place it in your workspace as shown in check 5 |
 | Python not installed | Download from [python.org](https://www.python.org/downloads/) |
 
 ---
